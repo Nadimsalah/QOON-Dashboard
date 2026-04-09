@@ -1,322 +1,233 @@
+<?php 
+require "conn.php";
+$ProdId = $_GET["ProdId"] ?? '';
+$shopid = $_GET["shopid"] ?? '';
+
+// Fetch Current Product Details
+$FoodName = ""; $FoodDesc = ""; $FoodCatID = ""; $FoodPrice = ""; $FoodOfferPrice = ""; $FoodPhoto = "";
+if ($stmt = $con->prepare("SELECT * FROM Foods WHERE FoodID = ?")) {
+    $stmt->bind_param("s", $ProdId);
+    $stmt->execute();
+    $resProd = $stmt->get_result();
+    if ($rowProd = $resProd->fetch_assoc()) {
+        $FoodName = $rowProd["FoodName"];
+        $FoodDesc = $rowProd["FoodDesc"];
+        $FoodCatID = $rowProd["FoodCatID"];
+        $FoodPrice = $rowProd["FoodPrice"];
+        $FoodOfferPrice = $rowProd["FoodOfferPrice"];
+        $FoodPhoto = $rowProd["FoodPhoto"];
+    }
+}
+
+// Fetch Shop Details for Header Context
+$shopName = "Update Product";
+if ($shopid) {
+    if ($stmt = $con->prepare("SELECT ShopName FROM Shops WHERE ShopID = ?")) {
+        $stmt->bind_param("s", $shopid);
+        $stmt->execute();
+        $resSn = $stmt->get_result();
+        if ($rowSn = $resSn->fetch_assoc()) {
+            $shopName = htmlspecialchars($rowSn['ShopName']) . " - Update Product";
+        }
+    }
+}
+?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-   <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title> Add Product | Jibler Dashboard </title>
-      <!-- Animate With CSS -->
-      <link rel="stylesheet" type="text/css" href="css/animate.css">
-      <!-- Font Awesome KIT -->
-      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
-      <script defer src="fontawesome-kit-5/js/all.js"></script>
-      <script defer src="fontawesome-kit-5/js/brands.js"></script>
-      <script defer src="fontawesome-kit-5/js/solid.js"></script>
-      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
-      <!-- Bootstrap Grids -->
-      <link href="css/bootstrap.min.css" rel="stylesheet">
-      <!-- Custom Stylings -->
-      <link href="css/custom.css" rel="stylesheet">
-      <!-- Jquery Library -->
-      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-   </head>
-   <body>
-      <section class="all-content">
-         <!-- Sidebar Section Starts Here -->
-                 <div class="SecondDivID"></div> 
-    <script src=" https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Product | QOON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-app: #F5F6FA; 
+            --bg-white: #FFFFFF;
+            --text-dark: #2A3042; 
+            --text-gray: #A6A9B6;
+            --accent-purple: #623CEA; 
+            --accent-purple-light: #F0EDFD;
+            --accent-blue: #007AFF;
+            --border-color: #F0F2F6;
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.03);
+            --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.05);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
+        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
 
-        <script type="text/javascript">
+        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
+        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
+        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
+        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
+        .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
+        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
 
-          function loadhem(){
+        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 
-            $(".SecondDivID").load("leftNav.php?Page=shop.php");
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: var(--radius); box-shadow: var(--shadow-card); flex-shrink:0;}
+        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
+        .breadcrumb a { color: var(--text-gray); text-decoration: none; transition: 0.2s; }
+        .breadcrumb a:hover { color: var(--accent-purple); }
 
-          }
-          
-          loadhem();
+        .flex-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; }
+        .glass-panel { background: var(--bg-white); border-radius: var(--radius); padding: 35px; box-shadow: var(--shadow-card); }
+        .panel-title { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 25px; display:flex; align-items:center; gap:12px; justify-content: space-between; }
 
-        </script>
-         <!-- Sidebar Section Starts Here -->
-         <!-- Right Section Starts Here -->
-         <main class="right-content">
-            <!-- Top Bar Section Starts Here -->
-            <section class="top-bar">
-               <div class="top-logo">
-                  <img src="images/logo.png">
-               </div>
-               <div class="top-right">
-                  <div class="row center-row1">
-                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
-                        <div class="search-form1">
-                           <form>
-                              <input type="text" placeholder="Search anything..." name="">
-                              <button> <i class="fa fa-search"> </i> </button>
-                           </form>
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--text-gray); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .form-control { width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-app); font-size: 15px; font-weight: 500; outline: none; transition: 0.2s; }
+        .form-control:focus { border-color: var(--accent-purple); background: #FFF; box-shadow: 0 0 0 4px var(--accent-purple-light); }
+        select.form-control { appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23A6A9B6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>'); background-repeat: no-repeat; background-position: right 18px center; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* Integrated Image View */
+        .header-img-block {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg-app);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header-img-block img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background: #FFF;
+        }
+
+        .img-upload-box {
+            position: relative;
+            flex: 1;
+        }
+
+        .img-upload-box input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
+
+        .upload-trigger {
+            background: #FFF;
+            border: 2px dashed var(--accent-purple);
+            color: var(--accent-purple);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+        .img-upload-box:hover .upload-trigger { background: var(--accent-purple); color: #FFF; }
+
+        .btn-submit { background: var(--accent-blue); color: #FFF; border: none; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 122, 255, 0.4); }
+
+        .btn-extra { background: var(--accent-purple-light); color: var(--accent-purple); text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-extra:hover { background: var(--accent-purple); color: #FFF; }
+        
+    </style>
+</head>
+<body>
+    <div class="app-envelope">
+        <?php include 'sidebar.php'; ?>
+
+        <main class="main-panel">
+            <header class="header">
+                <div class="breadcrumb">
+                    <a href="shopOnMap.php"><i class="fas fa-store"></i> Shop Management</a>
+                    <span>/</span>
+                    <a href="products.php?id=<?= htmlspecialchars($shopid) ?>">Products</a>
+                    <span>/</span>
+                    <span style="color: var(--accent-purple);">Update Product #<?= htmlspecialchars($ProdId) ?></span>
+                </div>
+            </header>
+
+            <form method="POST" action="UpdateProductAPI.php" enctype="multipart/form-data" class="flex-grid">
+                
+                <input type="hidden" name="ProdId" value="<?= htmlspecialchars($ProdId) ?>">
+                <input type="hidden" name="shopid" value="<?= htmlspecialchars($shopid) ?>">
+
+                <!-- Config Panel -->
+                <div class="glass-panel">
+                    <div class="panel-title">
+                        <span><i class="fas fa-pencil-alt" style="color: var(--accent-purple);"></i> Edit Properties</span>
+                        <a href="controlExtra.php?prodid=<?= htmlspecialchars($ProdId) ?>" class="btn-extra"><i class="fas fa-layer-group"></i> Manage Extras</a>
+                    </div>
+
+                    <div class="header-img-block">
+                        <img src="<?= htmlspecialchars($FoodPhoto) ?>" onerror="this.src='images/placeholder.png'">
+                        <div class="img-upload-box">
+                            <div class="upload-trigger"><i class="fas fa-upload"></i> Upload New Product Photo Overwrite</div>
+                            <input type="file" name="Photo" accept=".png, .jpg, .jpeg">
                         </div>
-                     </div>
-                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
-                        <div class="widgets-holder1">
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 Morocco 
-                                 <img src="images/flag-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 All Cities
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="bell-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/bell-icon.png">
-                                 <span class="counter-1"> 2 </span>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="user-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/avatar-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" class="form-control" name="ProdName" value="<?= htmlspecialchars($FoodName) ?>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" style="height: 120px; resize:none;" name="Description"><?= htmlspecialchars($FoodDesc) ?></textarea>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Price (MAD)</label>
+                            <input type="text" class="form-control" name="Price" value="<?= htmlspecialchars($FoodPrice) ?>" required>
                         </div>
-                     </div>
-                  </div>
-               </div>
-            </section>
-            <!-- Top Bar Section Starts Here -->
-            <!-- Main Content Section Starts Here -->
-			
-			
-			<?php 
-			                                                require "conn.php";
-
-			$ProdId = $_GET["ProdId"];
-			
-			$res = mysqli_query($con,"SELECT * FROM Foods WHERE FoodID = $ProdId");
-                                
-                                                $result = array();
-                                
-                                                while($row = mysqli_fetch_assoc($res)){
-													
-													
-													$FoodName = $row["FoodName"];
-													$FoodDesc = $row["FoodDesc"];
-													$FoodCatID = $row["FoodCatID"];
-													$FoodPrice = $row["FoodPrice"];
-													$FoodOfferPrice = $row["FoodOfferPrice"];
-													$FoodPhoto = $row["FoodPhoto"];
-													
-												}
-                                
-                                
-            ?>
-			
-			
-			
-			
-            <section class="main-content">
-               <form method="POST" action="UpdateProductAPI.php" enctype="multipart/form-data" class="container">
-                   
-                   
-                                     <input type="hidden" placeholder="ProdId" value="<?php echo $ProdId; ?>" class="field-style1" name="ProdId">
-
-                  <div class="row m-b-20 m-t-30">
-                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
-                        <div class="title-text1">
-						<h4 class="col-black"><a href="controlExtra.php?prodid=<?php echo $ProdId ?>"> Control Extra </a></h4>
-                           <h4 class="col-black"> Update Product </h4>
+                        <div class="form-group">
+                            <label class="form-label">Offer Price (MAD)</label>
+                            <input type="text" class="form-control" name="OfferPrice" value="<?= htmlspecialchars($FoodOfferPrice) ?>">
                         </div>
-                     </div>
-                  </div>
-                  <div class="row">
-                     <div class="col-md-12 col-lg-6 col-sm-12 col-12">
-                        <div class="custom-block1 block-element2 m-b-30">
-                           <div class="block-element m-t-20 m-b-20">
-                           
-                           <form>
+                    </div>
 
-                              <div class="row">
-
-                              <div class="col-md-4 col-lg-4 col-sm-12 col-12">
-                              <div class="image-uploader4">
-                   <div class="avatar-upload">
-        <div class="avatar-edit">
-            <input type="file" id="imageUpload"  name="Photo" accept=".png, .jpg, .jpeg">
-            
-            <label for="imageUpload"></label>
-        </div>
-        <div class="avatar-preview">
-            <div id="imagePreview" style="background-image: url(<?php echo $FoodPhoto; ?>);">
-            </div>
-        </div>
-    </div>
-                  </div>   
-                              </div>   
-
-                              <div class="col-md-8 col-lg-8 col-sm-12 col-12">
-                              <div class="form-field1">
-                  <input type="text" placeholder="Product Name" value="<?php echo $FoodName; ?>" class="field-style1" name="ProdName">
-                  </div>
-
-                   <div class="form-field1">
-                  <textarea style="height: 120px" placeholder="Description" value="" name="Description" class="field-style1"> <?php echo $FoodDesc; ?></textarea>
-                  </div>
-                              </div>
-
-
-                              </div>
-                              
-
-                             <div class="row">
-                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
-                  <div class="form-field1">
-                  <input type="text" placeholder="Price" class="field-style1" value="<?php echo $FoodPrice  ; ?>" name="Price">
-                  </div>   
-                  </div> 
-
-                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
-                  <div class="form-field1">
-                  <input type="text" placeholder="Offer Price" class="field-style1" value="<?php echo $FoodOfferPrice; ?>" name="OfferPrice">
-                  </div>   
-                  </div> 
-
-
-                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
-                  <!--<div class="form-field1">-->
-                  <!--<input type="email" placeholder="Extra" class="field-style1" name="">-->
-                  <!--</div>   -->
-                  </div> 
-
-                  <!-- <div class="col-md-6 col-lg-6 col-sm-12 col-12">-->
-                  <!--<div class="row custom-row1">-->
-                  <!--<div class="col-md-9 col-lg-9 col-sm-9 col-8 custom-pad1">-->
-                  <!--<div class="form-field1">-->
-                  <!--<input type="email" placeholder="Price" class="field-style1" name="">-->
-                  <!--</div> -->
-                  <!--</div>-->
-                  <!--<div class="col-md-3 col-lg-3 col-sm-3 col-4 custom-pad1">-->
-                  <!--<input type="submit" class="submit-btn4" value="ADD" name="">-->
-                  <!--</div>   -->
-                  <!--</div>   -->
+                    <div class="form-group" style="margin-bottom: 35px;">
+                        <label class="form-label">Assigned Category</label>
+                        <select class="form-control" name="CategoryID" required>
+                            <?php
+                            if ($stmt = $con->prepare("SELECT * FROM ShopsCategory WHERE ShopID = ?")) {
+                                $stmt->bind_param("s", $shopid);
+                                $stmt->execute();
+                                $resCat = $stmt->get_result();
+                                while ($rowCat = $resCat->fetch_assoc()) {
+                                    $sel = ($FoodCatID == $rowCat["CategoryShopID"]) ? 'selected' : '';
+                                    echo '<option value="' . $rowCat["CategoryShopID"] . '" ' . $sel . '>' . htmlspecialchars($rowCat["CategoryName"]) . '</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
                     
-                  <!--</div> -->
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
 
-                  </div> 
+                <!-- Showcase Panel -->
+                <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, var(--accent-blue), #0056D2); color: #FFF; text-align: center;">
+                    <img src="<?= htmlspecialchars($FoodPhoto) ?>" onerror="this.src='images/placeholder.png'" style="width: 150px; height: 150px; border-radius: 30px; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); margin-bottom: 30px; background: #FFF;">
+                    <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 15px;"><?= htmlspecialchars($FoodName) ?: 'Current Product' ?></h2>
+                    <p style="font-size: 14px; font-weight: 500; opacity: 0.8; max-width: 80%; line-height: 1.6;">Maintain accurate, enticing descriptions and competitive pricing to maximize conversions.</p>
+                </div>
 
-                  <!--<div class="row">-->
-                  <!--<div class="col-md-12 col-lg-12 col-sm-12 col-12">-->
-                  <!--<div class="chosen-categories">-->
-                  <!--<div> <span> Coca </span> <a href="" class="close-btn1"> <i class="fa fa-trash"> </i> </a> </div>   -->
-                  <!--</div>-->
-                  <!--</div>   -->
-                  <!--</div>-->
-
-                  <div class="row">
-                  <div class="col-md-12 col-lg-12 col-sm-12 col-12">
-
-                  <div class="block-element2">   
-                  <div class="title-1">
-                  <h4 class="col-black1"> <b> Category </b> </h4>   
-                  </div>   
-                  </div>
-
-                  <div class="block-element2">
-                  <select name="CategoryID"  class="field-style1">
-                                              <?php
-                                                $pass="a";
-                                                $shopid = $_GET["shopid"]; 
-                                                $res = mysqli_query($con,"SELECT * FROM ShopsCategory WHERE ShopID = $shopid");
-                                
-                                                $result = array();
-                                
-                                                while($row = mysqli_fetch_assoc($res)){
-                                
-													if($FoodCatID==$row["CategoryShopID"]){
-                                                   ?>
-                                              
-                                              <option value="<?php echo $row["CategoryShopID"] ?>" selected><?php echo $row["CategoryName"] ?> </option>
-                                              
-                                              <?php  }else{ ?>
-
-                                              <option value="<?php echo $row["CategoryShopID"] ?>"><?php echo $row["CategoryName"] ?> </option>
-
-												<?php } } ?>
-                                            
-                                        </select>
-                                        
-                                                                             <input type="hidden" placeholder="shopid" value="<?php echo $shopid; ?>" class="field-style1" name="shopid">
-
-                  </div>
-                    <input type="hidden" id="imageUpload"  name="ShopID" value="<?php echo $id ?>" accept=".png, .jpg, .jpeg">
-                  </div>
-                  
-                  
-                                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
-                                       <div class="block-element m-t-20 m-b-30">
-                                          <button class="submit-btn1"> Add </button>   
-                                       </div>
-                                    </div>
-                  
-                  </div> 
-
-
-                           </form>
-                            
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-md-12 col-lg-6 col-sm-12 col-12">
-                        <div class="graphic-image1">
-                           <img src="images/product-graphics.png">
-                        </div>
-                     </div>
-                  </div>
-               </form>
-            </section>
-            <!-- Main Content Section Ends Here -->
-         </main>
-         <!-- Right Section Ends Here -->
-      </section>
-      <!-- Bootstrap Javascript -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-      <script src="js/bootstrap.min.js"> </script>
-      <!-- Chart JS -->
-      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
-      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
-      <script src="js/functions.js"> </script>
-   </body>
+            </form>
+        </main>
+    </div>
+</body>
 </html>

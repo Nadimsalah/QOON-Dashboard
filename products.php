@@ -1,275 +1,272 @@
+<?php 
+require "conn.php";
+$id = $_GET["id"] ?? '';
+
+// Fetch Shop Details for Header Context
+$shopName = "Products";
+if ($id) {
+    if ($stmt = $con->prepare("SELECT ShopName FROM Shops WHERE ShopID = ?")) {
+        $stmt->bind_param("s", $id);
+        $stmt->execute();
+        $resSn = $stmt->get_result();
+        if ($rowSn = $resSn->fetch_assoc()) {
+            $shopName = htmlspecialchars($rowSn['ShopName']) . " - Products";
+        }
+    }
+}
+?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-   <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title> Products | Jibler Dashboard </title>
-      <!-- Animate With CSS -->
-      <link rel="stylesheet" type="text/css" href="css/animate.css">
-      <!-- Font Awesome KIT -->
-      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
-      <script defer src="fontawesome-kit-5/js/all.js"></script>
-      <script defer src="fontawesome-kit-5/js/brands.js"></script>
-      <script defer src="fontawesome-kit-5/js/solid.js"></script>
-      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
-      <!-- Bootstrap Grids -->
-      <link href="css/bootstrap.min.css" rel="stylesheet">
-      <!-- Custom Stylings -->
-      <link href="css/custom.css" rel="stylesheet">
-      <!-- Jquery Library -->
-      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-   </head>
-   <body>
-      <section class="all-content">
-         <!-- Sidebar Section Starts Here -->
-                 <div class="SecondDivID"></div> 
-    <script src=" https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Shop Products | QOON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-app: #F5F6FA; 
+            --bg-white: #FFFFFF;
+            --text-dark: #2A3042; 
+            --text-gray: #A6A9B6;
+            --accent-purple: #623CEA; 
+            --accent-purple-light: #F0EDFD;
+            --accent-blue: #007AFF;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --border-color: #F0F2F6;
+            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.03);
+            --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.05);
+            --radius: 16px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
+        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
 
-        <script type="text/javascript">
+        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
+        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
+        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
+        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
+        .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
+        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
 
-          function loadhem(){
+        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
 
-            $(".SecondDivID").load("leftNav.php?Page=shop.php");
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: var(--radius); box-shadow: var(--shadow-card); flex-shrink:0;}
+        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
+        .breadcrumb a { color: var(--text-gray); text-decoration: none; transition: 0.2s; }
+        .breadcrumb a:hover { color: var(--accent-purple); }
 
-          }
-          
-          loadhem();
+        .glass-panel {
+            background: var(--bg-white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow-card);
+        }
 
-        </script>
-         <!-- Sidebar Section Starts Here -->
-         <!-- Right Section Starts Here -->
-         <main class="right-content">
-            <!-- Top Bar Section Starts Here -->
-            <section class="top-bar">
-               <div class="top-logo">
-                  <img src="images/logo.png">
-               </div>
-               <div class="top-right">
-                  <div class="row center-row1">
-                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
-                        <div class="search-form1">
-                           <form>
-                              <input type="text" placeholder="Search anything..." name="">
-                              <button> <i class="fa fa-search"> </i> </button>
-                           </form>
-                        </div>
-                     </div>
-                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
-                        <div class="widgets-holder1">
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 Morocco 
-                                 <img src="images/flag-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 All Cities
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="bell-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/bell-icon.png">
-                                 <span class="counter-1"> 2 </span>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="user-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/avatar-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="#">Action</a>
-                                    <a class="dropdown-item" href="#">Another action</a>
-                                    <a class="dropdown-item" href="#">Something else here</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </section>
-            <!-- Top Bar Section Starts Here -->
-            <!-- Main Content Section Starts Here -->
-            <section class="main-content">
-               <div class="container">
-                  <div class="row m-b-20 m-t-30">
-                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
-                        <div class="title-text1">
-                           <h4 class="col-black"> Products </h4>
-                        </div>
-                     </div>
-                  </div>
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
 
-                  <div class="row">
+        .panel-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-                  <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+        .btn-primary {
+            background: var(--accent-purple);
+            color: #FFF;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(98, 60, 234, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(98, 60, 234, 0.4);
+            color:#FFF;
+        }
 
-                  <div class="custom-block1 block-element2">   
+        /* Products Grid */
+        .prod-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
 
-                  <div class="block-element m-t-10 m-b-20">
-                  <div class="search-form4">
-                  <form action="add-product.php?id=<?php echo $id ?>" method="GET">
-                     <input class="field-style2" type="text" placeholder="Search" name="">
-                     <?php $id = $_GET["id"]; ?>
-                     <input type="hidden" name="id" value="<?php echo $id ?>" >
-                     <button  class="submit-btn2" name=""><a href="add-product.php?id=<?php echo $id ?>" style="color:white;"> New product </a></button>
-                  </form>   
-                  </div>  
-                  </div> 
+        .prod-card {
+            background: var(--bg-app);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transition: 0.3s;
+        }
 
+        .prod-card:hover {
+            background: #FFF;
+            border-color: var(--accent-purple);
+            box-shadow: var(--shadow-float);
+            transform: translateY(-5px);
+        }
 
-                  <div class="block-element">
-                  <div class="table-wrapper">
-                  <table class="table-4">
-                  
-                  <thead>
-                     <tr>
-                        <th> Product Name </th>
-                        <th class="text-center"> Price  </th>
-                        <th class="text-center"> Creation Date </th>
-                        <th class="text-center"> Actions </th>
-                     </tr>
-                  </thead>
+        .p-top {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
 
-                  <tbody>
+        .p-top img {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #FFF;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
 
-                    <?php
-                    require "conn.php";
-                              $OrdersNumber = 0;
-                              $id = $_GET["id"];
-                              $OrdersNumberLastweek = 0;
+        .p-info { flex: 1; }
+        .p-name { font-size: 16px; font-weight: 800; color: var(--text-dark); line-height: 1.3; margin-bottom: 4px; }
+        .p-cat { font-size: 12px; font-weight: 600; color: var(--accent-purple); background: var(--accent-purple-light); padding: 3px 8px; border-radius: 6px; display: inline-block;}
+        
+        .p-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
 
-                              
-                             
-                              
-                            $res = mysqli_query($con,"SELECT * FROM Foods JOIN ShopsCategory ON Foods.FoodCatID = ShopsCategory.CategoryShopID WHERE ShopsCategory.ShopID='$id' order by FoodID desc");
-                            
-                            $result = array();
+        .p-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: auto;
+        }
 
-                            $OrderPriceFromShop = 0;
-                            $Type  = "";
-                            while($row = mysqli_fetch_assoc($res)){
+        .p-date {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-gray);
+        }
+
+        .p-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .a-edit { background: rgba(0, 122, 255, 0.1); color: var(--accent-blue); }
+        .a-edit:hover { background: var(--accent-blue); color: #FFF; }
+        
+        .a-del { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+        .a-del:hover { background: var(--accent-red); color: #FFF; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-gray); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="app-envelope">
+        <?php include 'sidebar.php'; ?>
+
+        <main class="main-panel">
+            <header class="header">
+                <div class="breadcrumb">
+                    <a href="shopOnMap.php"><i class="fas fa-store"></i> Shop Management</a>
+                    <span>/</span>
+                    <span style="color: var(--accent-purple);"><?= $shopName ?></span>
+                </div>
+                <div style="font-size:13px; font-weight:700; color:var(--text-gray); background:var(--bg-app); padding:8px 16px; border-radius:10px;">
+                    Shop ID: <?= htmlspecialchars($id) ?>
+                </div>
+            </header>
+
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title"><i class="fas fa-hamburger" style="color: var(--accent-purple);"></i> Product Inventory</div>
+                    <a href="add-product.php?id=<?= htmlspecialchars($id) ?>" class="btn-primary">
+                        <i class="fas fa-plus"></i> New Product
+                    </a>
+                </div>
+
+                <?php 
+                $resCount = 0;
+                if ($stmt = $con->prepare("SELECT * FROM Foods JOIN ShopsCategory ON Foods.FoodCatID = ShopsCategory.CategoryShopID WHERE ShopsCategory.ShopID=? ORDER BY FoodID DESC")) {
+                    $stmt->bind_param("s", $id);
+                    $stmt->execute();
+                    $res = $stmt->get_result();
+                    
+                    if ($res->num_rows > 0) {
+                        echo '<div class="prod-grid">';
+                        while ($row = $res->fetch_assoc()) {
+                ?>
+                            <div class="prod-card">
+                                <div class="p-top">
+                                    <img src="<?= htmlspecialchars($row["FoodPhoto"]) ?>" onerror="this.src='images/placeholder.png'">
+                                    <div class="p-info">
+                                        <div class="p-name"><?= htmlspecialchars($row["FoodName"]) ?></div>
+                                        <div class="p-cat"><?= htmlspecialchars($row["CategoryName"]) ?></div>
+                                    </div>
+                                    <div class="p-price"><?= number_format($row["FoodPrice"], 2) ?> <span style="font-size:11px;">MAD</span></div>
+                                </div>
                                 
-                        ?>        
-                                
-
-
-                     <tr>
-                        <td class="image-col2"> <img src="<?php echo $row["FoodPhoto"]; ?>" style="width=150px;height:100px;border-radius: 20%;"> <span>  <?php echo $row["FoodName"]; ?> </span> </td>
-                        <td class="text-center"> <?php echo $row["FoodPrice"]; ?> MAD  </td>
-                        <td class="text-center"> <?php echo $row["CreatedAtFoods"]; ?> </td>
-                        <td class="text-center action-col">  
-                           <a href="update-product.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>
-                           <a href="update-product.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>
-                           <a href="DeleteProduct.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-red1"> <i class="fa fa-trash "> </i> </a>
-                         </td>
-                     </tr>
-                     
-                     
-                     <?php 
-                     
-                            }
-                     ?>
-
-                     <!--<tr>-->
-                     <!--   <td class="image-col2"> <img src="images/dish-2.png"> <span>  Pizza supper </span> </td>-->
-                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
-                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
-                     <!--   <td class="text-center action-col">  -->
-                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
-                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
-                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
-                     <!--    </td>-->
-                     <!--</tr>-->
-
-
-                     <!--<tr>-->
-                     <!--   <td class="image-col2"> <img src="images/dish-3.png"> <span>  Pizza supper </span> </td>-->
-                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
-                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
-                     <!--   <td class="text-center action-col">  -->
-                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
-                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
-                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
-                     <!--    </td>-->
-                     <!--</tr>-->
-
-
-                     <!--<tr>-->
-                     <!--   <td class="image-col2"> <img src="images/dish-4.png"> <span>  Pizza supper </span> </td>-->
-                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
-                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
-                     <!--   <td class="text-center action-col">  -->
-                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
-                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
-                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
-                     <!--    </td>-->
-                     <!--</tr>-->
-
-                  </tbody>
-
-                  <tfoot>
-                     <tr>
-                        <td colspan="4" class="text-right"> 
-                           <a href="" class="previous-btn"> Previous  </a>
-                            <a href="" class="next-btn"> Next  </a>
-                            </td>
-                     </tr>
-                  </tfoot>
-
-                  </table>   
-                  </div>   
-
-                  </div>  
-               </div>
-
-                  </div>   
-
-                  </div>
-
-
-
-               </div>
-            </section>
-            <!-- Main Content Section Ends Here -->
-         </main>
-         <!-- Right Section Ends Here -->
-      </section>
-      <!-- Bootstrap Javascript -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-      <script src="js/bootstrap.min.js"> </script>
-      <!-- Chart JS -->
-      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
-      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
-      <script src="js/functions.js"> </script>
-   </body>
+                                <div class="p-footer">
+                                    <div class="p-date"><i class="far fa-calendar-alt"></i> <?= date('M d, Y', strtotime($row["CreatedAtFoods"])) ?></div>
+                                    <div class="p-actions">
+                                        <!-- Note: using update-product.php for view/edit as per legacy logic -->
+                                        <a href="update-product.php?ProdId=<?= $row["FoodID"] ?>&shopid=<?= htmlspecialchars($id) ?>" class="action-icon a-edit" title="Edit Product">
+                                            <i class="fas fa-pencil-alt"></i>
+                                        </a>
+                                        <a href="DeleteProduct.php?ProdId=<?= $row["FoodID"] ?>&shopid=<?= htmlspecialchars($id) ?>" class="action-icon a-del" title="Delete Product" onclick="return confirm('Are you sure you want to delete this product?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                <?php
+                        }
+                        echo '</div>';
+                    } else {
+                        echo '<div class="empty-state">
+                                <i class="fas fa-box-open fa-4x" style="opacity:0.2; margin-bottom:15px; display:block;"></i>
+                                No products found for this shop. Click "New Product" to build inventory.
+                              </div>';
+                    }
+                }
+                ?>
+            </div>
+        </main>
+    </div>
+</body>
 </html>
