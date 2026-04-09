@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title> Products | Jibler Dashboard </title>
+      <!-- Animate With CSS -->
+      <link rel="stylesheet" type="text/css" href="css/animate.css">
+      <!-- Font Awesome KIT -->
+      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
+      <script defer src="fontawesome-kit-5/js/all.js"></script>
+      <script defer src="fontawesome-kit-5/js/brands.js"></script>
+      <script defer src="fontawesome-kit-5/js/solid.js"></script>
+      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
+      <!-- Bootstrap Grids -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <!-- Custom Stylings -->
+      <link href="css/custom.css" rel="stylesheet">
+      <!-- Jquery Library -->
+      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+   </head>
+   <body>
+      <section class="all-content">
+         <!-- Sidebar Section Starts Here -->
+                 <div class="SecondDivID"></div> 
+    <script src=" https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+        <script type="text/javascript">
+
+          function loadhem(){
+
+            $(".SecondDivID").load("leftNav.php?Page=shop.php");
+
+          }
+          
+          loadhem();
+
+        </script>
+         <!-- Sidebar Section Starts Here -->
+         <!-- Right Section Starts Here -->
+         <main class="right-content">
+            <!-- Top Bar Section Starts Here -->
+            <section class="top-bar">
+               <div class="top-logo">
+                  <img src="images/logo.png">
+               </div>
+               <div class="top-right">
+                  <div class="row center-row1">
+                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
+                        <div class="search-form1">
+                           <form>
+                              <input type="text" placeholder="Search anything..." name="">
+                              <button> <i class="fa fa-search"> </i> </button>
+                           </form>
+                        </div>
+                     </div>
+                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
+                        <div class="widgets-holder1">
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 Morocco 
+                                 <img src="images/flag-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 All Cities
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="bell-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/bell-icon.png">
+                                 <span class="counter-1"> 2 </span>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="user-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/avatar-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </section>
+            <!-- Top Bar Section Starts Here -->
+            <!-- Main Content Section Starts Here -->
+            <section class="main-content">
+               <div class="container">
+                  <div class="row m-b-20 m-t-30">
+                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                        <div class="title-text1">
+                           <h4 class="col-black"> Products </h4>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="row">
+
+                  <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+
+                  <div class="custom-block1 block-element2">   
+
+                  <div class="block-element m-t-10 m-b-20">
+                  <div class="search-form4">
+                  <form action="add-product.php?id=<?php echo $id ?>" method="GET">
+                     <input class="field-style2" type="text" placeholder="Search" name="">
+                     <?php $id = $_GET["id"]; ?>
+                     <input type="hidden" name="id" value="<?php echo $id ?>" >
+                     <button  class="submit-btn2" name=""><a href="add-product.php?id=<?php echo $id ?>" style="color:white;"> New product </a></button>
+                  </form>   
+                  </div>  
+                  </div> 
+
+
+                  <div class="block-element">
+                  <div class="table-wrapper">
+                  <table class="table-4">
+                  
+                  <thead>
+                     <tr>
+                        <th> Product Name </th>
+                        <th class="text-center"> Price  </th>
+                        <th class="text-center"> Creation Date </th>
+                        <th class="text-center"> Actions </th>
+                     </tr>
+                  </thead>
+
+                  <tbody>
+
+                    <?php
+                    require "conn.php";
+                              $OrdersNumber = 0;
+                              $id = $_GET["id"];
+                              $OrdersNumberLastweek = 0;
+
+                              
+                             
+                              
+                            $res = mysqli_query($con,"SELECT * FROM Foods JOIN ShopsCategory ON Foods.FoodCatID = ShopsCategory.CategoryShopID WHERE ShopsCategory.ShopID='$id' order by FoodID desc");
+                            
+                            $result = array();
+
+                            $OrderPriceFromShop = 0;
+                            $Type  = "";
+                            while($row = mysqli_fetch_assoc($res)){
+                                
+                        ?>        
+                                
+
+
+                     <tr>
+                        <td class="image-col2"> <img src="<?php echo $row["FoodPhoto"]; ?>" style="width=150px;height:100px;border-radius: 20%;"> <span>  <?php echo $row["FoodName"]; ?> </span> </td>
+                        <td class="text-center"> <?php echo $row["FoodPrice"]; ?> MAD  </td>
+                        <td class="text-center"> <?php echo $row["CreatedAtFoods"]; ?> </td>
+                        <td class="text-center action-col">  
+                           <a href="update-product.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>
+                           <a href="update-product.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>
+                           <a href="DeleteProduct.php?ProdId=<?php echo $row["FoodID"] ?>&shopid=<?php echo $id?>" class="bg-red1"> <i class="fa fa-trash "> </i> </a>
+                         </td>
+                     </tr>
+                     
+                     
+                     <?php 
+                     
+                            }
+                     ?>
+
+                     <!--<tr>-->
+                     <!--   <td class="image-col2"> <img src="images/dish-2.png"> <span>  Pizza supper </span> </td>-->
+                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
+                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
+                     <!--   <td class="text-center action-col">  -->
+                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
+                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
+                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
+                     <!--    </td>-->
+                     <!--</tr>-->
+
+
+                     <!--<tr>-->
+                     <!--   <td class="image-col2"> <img src="images/dish-3.png"> <span>  Pizza supper </span> </td>-->
+                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
+                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
+                     <!--   <td class="text-center action-col">  -->
+                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
+                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
+                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
+                     <!--    </td>-->
+                     <!--</tr>-->
+
+
+                     <!--<tr>-->
+                     <!--   <td class="image-col2"> <img src="images/dish-4.png"> <span>  Pizza supper </span> </td>-->
+                     <!--   <td class="text-center"> 66.87 MAD  </td>-->
+                     <!--   <td class="text-center"> 2022-05-11 22:38:11 </td>-->
+                     <!--   <td class="text-center action-col">  -->
+                     <!--      <a href="" class="bg-blue1"> <i class="fa fa-eye"> </i> </a>-->
+                     <!--      <a href="" class="bg-green1"> <i class="fa fa-pencil-alt"> </i> </a>-->
+                     <!--      <a href="" class="bg-red1"> <i class="fa fa-trash "> </i> </a>-->
+                     <!--    </td>-->
+                     <!--</tr>-->
+
+                  </tbody>
+
+                  <tfoot>
+                     <tr>
+                        <td colspan="4" class="text-right"> 
+                           <a href="" class="previous-btn"> Previous  </a>
+                            <a href="" class="next-btn"> Next  </a>
+                            </td>
+                     </tr>
+                  </tfoot>
+
+                  </table>   
+                  </div>   
+
+                  </div>  
+               </div>
+
+                  </div>   
+
+                  </div>
+
+
+
+               </div>
+            </section>
+            <!-- Main Content Section Ends Here -->
+         </main>
+         <!-- Right Section Ends Here -->
+      </section>
+      <!-- Bootstrap Javascript -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+      <script src="js/bootstrap.min.js"> </script>
+      <!-- Chart JS -->
+      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
+      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
+      <script src="js/functions.js"> </script>
+   </body>
+</html>

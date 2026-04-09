@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title> Shops | Jibler Dashboard </title>
+      <!-- Animate With CSS -->
+      <link rel="stylesheet" type="text/css" href="css/animate.css">
+      <!-- Font Awesome KIT -->
+      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
+      <script defer src="fontawesome-kit-5/js/all.js"></script>
+      <script defer src="fontawesome-kit-5/js/brands.js"></script>
+      <script defer src="fontawesome-kit-5/js/solid.js"></script>
+      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
+      <!-- Bootstrap Grids -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <!-- Custom Stylings -->
+      <link href="css/custom.css" rel="stylesheet">
+      <!-- Jquery Library -->
+      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+   </head>
+   <body>
+      <section class="all-content">
+         <!-- Sidebar Section Starts Here -->
+         <aside class="sidebar-1">
+            <div class="sidebar-wrapper">
+               <div class="sidebar-head">
+                  <div class="sidebar-logo">
+                     <img src="images/logo.png">   
+                  </div>
+                  <button class="navbar-handler"> <i class="fa fa-bars"> </i> </button>
+               </div>
+               <div class="custom-menu">
+                 <ul>
+                     <li> <a href="index.html"> <img src="images/nav-icon1.png" height="22px"> <span> Dashboard </span> </a> </li>
+                     <li> <a href="user.html"> <img src="images/nav-icon2.png" height="22px"> <span> Users </span>  </a> </li>
+                     <li> <a href="driver.html"> <img src="images/nav-icon3.png" height="35px"> <span> Drivers </span>  </a> </li>
+                     <li  class="active"> <a href="shop.html"> <img src="images/nav-icon4.png" height="25px"> <span> Shop </span> </a> </li>
+                     <li> <a href="orders.html"> <img src="images/nav-icon5.png" height="24px"> <span> Orders </span> </a> </li>
+                     <li> <a href="wallet.html"> <img src="images/nav-icon6.png" height="23px"> <span> Wallet </span> </a> </li>
+                     <li> <a href="apps.html"> <img src="images/nav-icon7.png" height="24px">  <span> Apps </span> </a> </li>
+                     <li> <a href="notifications.html"> <img src="images/nav-icon8.png" height="25px">  <span> Notifications </span> </a> </li>
+                     <li> <a href="settings-profile.html"> <img src="images/nav-icon9.png" height="26px"> <span> Settings </span> </a> </li>
+                     <li class="logout-list"> <a href=""> <img src="images/nav-icon10.png" height="26px"> <span> Logout </span> </a> </li>
+                  </ul>
+               </div>
+            </div>
+         </aside>
+         <!-- Sidebar Section Starts Here -->
+         <!-- Right Section Starts Here -->
+         <main class="right-content">
+
+            <!-- Top Bar Section Starts Here -->
+            <section class="top-bar">
+               <div class="top-logo">
+                  <img src="images/logo.png">
+               </div>
+               <div class="top-right">
+                  <div class="row center-row1">
+                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
+                        <div class="search-form1">
+                           <form>
+                              <input type="text" placeholder="Search anything..." name="">
+                              <button> <i class="fa fa-search"> </i> </button>
+                           </form>
+                        </div>
+                     </div>
+                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
+                        <div class="widgets-holder1">
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 Morocco 
+                                 <img src="images/flag-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 All Cities
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="bell-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/bell-icon.png">
+                                 <span class="counter-1"> 2 </span>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="user-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/avatar-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </section>
+            <!-- Top Bar Section Starts Here -->
+            
+            <!-- Main Content Section Starts Here -->
+            <section class="main-content">
+               <div class="container">
+                  <div class="row m-b-20 m-t-30">
+                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                        <div class="buttons-holder2">
+                           <a href="add-shop.html" class="custom-btn4"> <i class="fa fa-plus"> </i> Add Shop </a>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class="col-md-3 col-lg-3 col-sm-12 col-12 sec-wid-right">
+                        <div class="custom-block3">
+                           <div class="block-element">
+                              <div class="sec-head3">
+                                 <h4> Shops </h4>
+                                 <div class="search-form2">
+                                    <form>
+                                       <input type="text" placeholder="Search by Name Phone  Email Id" name="">   
+                                       <i class="fa fa-search"> </i>
+                                    </form>
+                                 </div>
+                                 <button class="custom-btn1"> See all </button>
+                              </div>
+                           </div>
+                           <div class="table-wrapper">
+                              <table class="table-1">
+                                 <thead>
+                                    <tr>
+                                       <th> Name </th>
+                                       <th class="text-center"> Jibler ID </th>
+                                       <th class="text-center"> Total Orders </th>
+                                    </tr>
+                                 </thead>
+                                 <tbody>
+                                    <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar1.png">  Food home  </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar2.png">  Burger king  </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar3.png">  Snack attack  </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar4.png">  Foody </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar5.png">   immmple </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar6.png">  Wordwide  </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar7.png">  Ja-cool </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+
+                                     <tr>
+                                       <td class="image-col col-blue1"> <img src="images/shop-avatar8.png">  Mool zari3a  </td>
+                                       <td class="col-grey1 text-center"> 73684 </td>
+                                       <td class="col-grey1 text-center">   374 </td>
+                                    </tr>
+                                   
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                        <div class="block-element m-b-40">
+                           <div class="custom-pagination">
+                              <h5> Showing 1 to 10 of 1,698 entries </h5>
+                              <ul>
+                                 <li> <a href=""> <i class="fa fa-angle-left"> </i> </a> </li>
+                                 <li> <a href="" class="active"> 1 </a> </li>
+                                 <li> <a href=""> <i class="fa fa-angle-right"> </i> </a> </li>
+                              </ul>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="col-md-9 col-lg-9 col-sm-12 col-12 sec-wid-left">
+                        <div class="block-element m-b-30">
+                           <div class="custom-block3">
+                              <div class="block-element m-t-10">
+                                 <select class="filter-sort1">
+                                    <option> This Month </option>
+                                    <option> Previous Month </option>
+                                 </select>
+                              </div>
+                              <div class="block-element">
+                                 <div class="row center-row1">
+                                    <div class="col-md-12 col-lg-4 col-sm-12 col-12">
+                                       <div class="block-element m-t-10">
+                                          <div class="sec-head4">
+                                             <h2 class="col-blue1"> 1,384,485 Shops <br/>
+                                                <span class="col-grey1"> Total Shops </span> <span class="col-green1"> +2.45% </span>    
+                                             </h2>
+                                          </div>
+                                       </div>
+                                       <div class="block-element">
+                                          <span class="track-text1 col-green2"> <i class="fa fa-check" style="background:#00B578"> </i> Live Track </span>     
+                                       </div>
+                                    </div>
+                                    <div class="col-md-12 col-lg-8 col-sm-12 col-12">
+                                       <div class="chart-1">
+                                          <div>
+                                             <div class="chartjs-size-monitor">
+                                                <div class="chartjs-size-monitor-expand">
+                                                   <div class=""></div>
+                                                </div>
+                                                <div class="chartjs-size-monitor-shrink">
+                                                   <div class=""></div>
+                                                </div>
+                                             </div>
+                                             <canvas id="driversChart" style="display: block; width: 1379px; height: 689px;" width="1379" height="689" class="chartjs-render-monitor"></canvas>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div class="block-element">
+                           <div class="row custom-row1">
+                              <div class="col-md-4 col-lg-4 col-sm-4 col-12">
+                                 <div class="custom-box1">
+                                    <div class="custom-box1-head">
+                                       <h5> <img src="images/nav-icon4.png"> Store Premium </h5>
+                                       <h4> 1,820 </h4>
+                                    </div>
+                                    <div class="custom-box1-data">
+                                       <img src="images/line-1.png">
+                                       <span class="col-grey1"> <span class="col-green2"> 212,730+   </span> more <br/> from last week  </span>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-4 col-lg-4 col-sm-4 col-12">
+                                 <div class="custom-box1">
+                                    <div class="custom-box1-head">
+                                       <h5> <img src="images/nav-icon4.png"> Start plus </h5>
+                                       <h4> 1,289 </h4>
+                                    </div>
+                                    <div class="custom-box1-data">
+                                       <img src="images/line-4.png">
+                                       <span class="col-grey1"> <span class="col-green2"> 7882+ </span> more <br/> from last week  </span>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="col-md-4 col-lg-4 col-sm-4 col-12">
+                                 <div class="delivery-speed-box">
+                                    <div class="custom-box1-head">
+                                       <h5 class="no-margin"> <img src="images/nav-icon4.png"> Not Partners </h5>
+                                     
+                                    </div>
+                                    <h3 class="col-blue2 m-t-30"> 1,136,386 </h3>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </section>
+            <!-- Main Content Section Ends Here -->
+         </main>
+         <!-- Right Section Ends Here -->
+      </section>
+      <!-- Bootstrap Javascript -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+      <script src="js/bootstrap.min.js"> </script>
+      <!-- Chart JS -->
+      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
+      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
+      <script src="js/functions.js"> </script>
+      <script type="text/javascript">
+         $(document).ready(function(){
+         var config = {
+              type: 'line',
+              data: {
+                 labels: ['Jan', 'Feb', 'March', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dev'],
+                 datasets: [{
+                    label: 'Start plus',
+                    backgroundColor: '#00D409',
+                    borderColor: '#00D409',
+                    fill: false,
+                    data: [
+                       200,
+                       220,
+                       400,
+                       240,
+                       320,
+                       380,
+                       290,
+                       170,
+                       390,
+                       298,
+                       220,
+                       320
+                       /*randomScalingFactor(),
+                       randomScalingFactor(),
+                       randomScalingFactor(),
+                       randomScalingFactor(),
+                       randomScalingFactor(),
+                       randomScalingFactor(),
+                       randomScalingFactor()*/
+                    ],
+                 }, {
+                    label: 'Store Premium',
+                    backgroundColor: '#5250F9',
+                    borderColor: '#5250F9' ,
+                    fill: false,
+                    data: [
+                       120,
+                       140,
+                       320,
+                       160,
+                       240,
+                       300,
+                       210,
+                       90,
+                       310,
+                       218,
+                       140,
+                       240
+                    ],
+                 }, {
+
+
+                    label: 'Not Partners',
+                    backgroundColor: '#232360',
+                    borderColor: '#232360' ,
+                    fill: false,
+                    data: [
+                       60,
+                       70,
+                       160,
+                       80,
+                       100,
+                       140,
+                       170,
+                       180,
+                       90,
+                       120,
+                       90,
+                       40
+                    ],
+              
+                 }]
+              },
+              options: {
+                  
+                 title: {
+                    display: true,
+                    text: ''
+                 },
+                 scales: {
+                    xAxes: [{
+                       display: true,
+                  scaleLabel: {
+                    display: true,
+                    labelString: ' '
+                  },
+                 
+                    }],
+                    yAxes: [{
+                       display: true,
+                       //type: 'logarithmic',
+                  scaleLabel: {
+                             display: true,
+                             labelString: ''
+                          },
+                          ticks: {
+                             min: 0,
+                             max: 500,
+         
+                             // forces step size to be 5 units
+                             stepSize: 100
+                          }
+                    }],
+
+                   /* zAxes: [{
+                       display: true,
+                  scaleLabel: {
+                             display: true,
+                             labelString: ''
+                          },
+                          ticks: {
+                             min: 0,
+                             max: 500,
+         
+                             // forces step size to be 5 units
+                             stepSize: 100
+                          }
+                 
+                    }],*/
+                 }
+              }
+           };
+         
+           window.onload = function() {
+              var ctx = document.getElementById('driversChart').getContext('2d');
+              window.myLine = new Chart(ctx, config);
+           };
+         
+           document.getElementById('randomizeData').addEventListener('click', function() {
+              config.data.datasets.forEach(function(dataset) {
+                 dataset.data = dataset.data.map(function() {
+                    return randomScalingFactor();
+         
+                 });
+         
+              });
+         
+              window.myLine.update();
+           });
+         });
+         
+         
+         
+         
+      </script>
+   </body>
+</html>

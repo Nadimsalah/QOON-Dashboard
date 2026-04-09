@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title> Add Product | Jibler Dashboard </title>
+      <!-- Animate With CSS -->
+      <link rel="stylesheet" type="text/css" href="css/animate.css">
+      <!-- Font Awesome KIT -->
+      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
+      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
+      <script defer src="fontawesome-kit-5/js/all.js"></script>
+      <script defer src="fontawesome-kit-5/js/brands.js"></script>
+      <script defer src="fontawesome-kit-5/js/solid.js"></script>
+      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
+      <!-- Bootstrap Grids -->
+      <link href="css/bootstrap.min.css" rel="stylesheet">
+      <!-- Custom Stylings -->
+      <link href="css/custom.css" rel="stylesheet">
+      <!-- Jquery Library -->
+      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+   </head>
+   <body>
+      <section class="all-content">
+         <!-- Sidebar Section Starts Here -->
+         <aside class="sidebar-1">
+            <div class="sidebar-wrapper">
+               <div class="sidebar-head">
+                  <div class="sidebar-logo">
+                     <img src="images/logo.png">   
+                  </div>
+                  <button class="navbar-handler"> <i class="fa fa-bars"> </i> </button>
+               </div>
+               <div class="custom-menu">
+              <ul>
+                     <li > <a href="index.php"> <img src="images/nav-icon1.png" height="22px"> <span> Dashboard </span> </a> </li>
+                     <li> <a href="user.php"> <img src="images/nav-icon2.png" height="22px"> <span> Users </span>  </a> </li>
+                     <li> <a href="driver.php"> <img src="images/nav-icon3.png" height="35px"> <span> Drivers </span>  </a> </li>
+                     <li> <a href="shop.php"> <img src="images/nav-icon4.png" height="25px"> <span> Shop </span> </a> </li>
+                     <li> <a href="orders.php"> <img src="images/nav-icon5.png" height="24px"> <span> Orders </span> </a> </li>
+                     <li> <a href="wallet.php"> <img src="images/nav-icon6.png" height="23px"> <span> Wallet </span> </a> </li>
+                     <li class="active"> <a href="apps.php"> <img src="images/nav-icon7.png" height="24px">  <span> Apps </span> </a> </li>
+                     <li> <a href="notifications.php"> <img src="images/nav-icon8.png" height="25px">  <span> Notifications </span> </a> </li>
+                     <li> <a href="settings-profile.php"> <img src="images/nav-icon9.png" height="26px"> <span> Settings </span> </a> </li>
+                     <li class="logout-list"> <a href=""> <img src="images/nav-icon10.png" height="26px"> <span> Logout </span> </a> </li>
+                  </ul>
+               </div>
+            </div>
+         </aside>
+         <!-- Sidebar Section Starts Here -->
+         <!-- Right Section Starts Here -->
+         <main class="right-content">
+            <!-- Top Bar Section Starts Here -->
+            <section class="top-bar">
+               <div class="top-logo">
+                  <img src="images/logo.png">
+               </div>
+               <div class="top-right">
+                  <div class="row center-row1">
+                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
+                        <div class="search-form1">
+                           <form>
+                              <input type="text" placeholder="Search anything..." name="">
+                              <button> <i class="fa fa-search"> </i> </button>
+                           </form>
+                        </div>
+                     </div>
+                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
+                        <div class="widgets-holder1">
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 Morocco 
+                                 <img src="images/flag-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="country-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 All Cities
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="bell-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/bell-icon.png">
+                                 <span class="counter-1"> 2 </span>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="user-dropdown">
+                              <div class="dropdown right-drop">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <img src="images/avatar-1.png">
+                                 <i class="fa fa-angle-down"> </i>
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <a class="dropdown-item" href="#">Action</a>
+                                    <a class="dropdown-item" href="#">Another action</a>
+                                    <a class="dropdown-item" href="#">Something else here</a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </section>
+            <!-- Top Bar Section Starts Here -->
+            <!-- Main Content Section Starts Here -->
+			
+			
+			<?php 
+			
+			$CategoryId = $_GET["CategoryId"];
+			
+			
+										require "conn.php";
+
+                
+                                        $res = mysqli_query($con,"SELECT * FROM Categories WHERE CategoryId = $CategoryId");
+                        
+                                        $result = array();
+                        
+                                        while($row = mysqli_fetch_assoc($res)){
+                        
+                                        $CategoryId = $row["CategoryId"];
+										$ArabCategory = $row["ArabCategory"];
+										$EnglishCategory = $row["EnglishCategory"];
+										$FrenchCategory = $row["FrenchCategory"];
+										$Photo = $row["Photo"];
+										$priority = $row["priority"];
+										$Type     = $row["Type"];
+										$Pro     = $row["Pro"];
+
+										}
+			
+			?>
+			
+			
+            <section class="main-content">
+               <form method="POST" action="UpdateCategoryAPI.php" enctype="multipart/form-data" class="container">
+                  <div class="row m-b-20 m-t-30">
+                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                        <div class="title-text1">
+                           <h4 class="col-black"> Update Categoty </h4>
+						   
+						   <?php if($Type=='Small'){ ?>
+							<h5 class="col-black"> <a href="controlkinzcategory.php?id=<?php echo $CategoryId ?>">Control Kinz Madinty Categories</a> </h5>		
+						   <?php }else{ ?>
+						   <h5 class="col-black"> <a href="controlkinzcategory.php?id=<?php echo $CategoryId ?>">Add Category Inside Category</a> </h5>		
+						   <?php } ?>
+
+						   
+                        </div>
+                     </div>
+                  </div>
+                  <div class="row">
+                     <div class="col-md-12 col-lg-6 col-sm-12 col-12">
+                        <div class="custom-block1 block-element2 m-b-30">
+                           <div class="block-element m-t-20 m-b-20">
+                           
+                          
+
+                              <div class="row">
+
+                              <div class="col-md-4 col-lg-4 col-sm-12 col-12">
+                              <div class="image-uploader4">
+                   <div class="avatar-upload">
+        <div class="avatar-edit">
+            <input type="file" id="imageUpload"  name="Photo" accept=".png, .jpg, .jpeg">
+            
+            <label for="imageUpload"></label>
+        </div>
+        <div class="avatar-preview">
+            <div id="imagePreview" style="background-image: url(<?php echo $Photo; ?>);">
+            </div>
+        </div>
+    </div>
+                  </div>   
+                              </div>   
+
+                              <div class="col-md-8 col-lg-8 col-sm-12 col-12">
+                              <div class="form-field1">
+                  <input type="text" placeholder="priority" value="<?php echo $priority; ?>" class="field-style1" name="Priority">
+                  </div>
+
+                   <div class="form-field1">
+                  <!--<textarea style="height: 120px" placeholder="Description" name="Description" class="field-style1"></textarea>-->
+                  </div>
+                              </div>
+
+
+                              </div>
+                              
+
+                             <div class="row">
+                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                  <div class="form-field1">
+                  <input type="text" placeholder="Arabic" value="<?php echo $ArabCategory; ?>" class="field-style1" name="Arabic">
+                  </div>  
+<div class="form-field1">
+                                    <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                                       <div class="form-field1">
+                                           <select name="Pro"  class="field-style1">
+										   <?php if($Pro=="Pro"){ ?>
+										   <option value="Pro">Pro</option>
+                                             <option value="Normal"> Normal</option>
+                                            
+										   <?php }else{ ?>
+										    <option value="Normal"> Normal</option>
+                                            <option value="Pro">Pro</option>
+										   <?php } ?>
+                                                 
+                                        </select>
+                                       </div>
+                                    </div>
+                                 </div>					  
+                  </div> 
+
+                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                  <div class="form-field1">
+                  <input type="text" placeholder="French" value="<?php echo $FrenchCategory; ?>" class="field-style1" name="French">
+                  </div>  
+                  <div class="form-field1">
+                  <input type="text" placeholder="SearchKey" value="<?php echo $EnglishCategory; ?>" class="field-style1" name="English">
+                  </div>
+                  </div> 
+				  				  		
+
+
+
+                  <div class="col-md-6 col-lg-6 col-sm-12 col-12">
+                  <!--<div class="form-field1">-->
+                  <!--<input type="email" placeholder="Extra" class="field-style1" name="">-->
+                  <!--</div>   -->
+                  </div> 
+
+                  <!-- <div class="col-md-6 col-lg-6 col-sm-12 col-12">-->
+                  <!--<div class="row custom-row1">-->
+                  <!--<div class="col-md-9 col-lg-9 col-sm-9 col-8 custom-pad1">-->
+                  <!--<div class="form-field1">-->
+                  <!--<input type="email" placeholder="Price" class="field-style1" name="">-->
+                  <!--</div> -->
+                  <!--</div>-->
+                  <!--<div class="col-md-3 col-lg-3 col-sm-3 col-4 custom-pad1">-->
+                  <!--<input type="submit" class="submit-btn4" value="ADD" name="">-->
+                  <!--</div>   -->
+                  <!--</div>   -->
+                    
+                  <!--</div> -->
+
+                  </div> 
+
+                  <!--<div class="row">-->
+                  <!--<div class="col-md-12 col-lg-12 col-sm-12 col-12">-->
+                  <!--<div class="chosen-categories">-->
+                  <!--<div> <span> Coca </span> <a href="" class="close-btn1"> <i class="fa fa-trash"> </i> </a> </div>   -->
+                  <!--</div>-->
+                  <!--</div>   -->
+                  <!--</div>-->
+				  
+				  <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                        <div class="form-field1">
+                            <select name="DeliveryZoneID[]" class="field-style1" multiple >
+									<?php 
+									    $res = mysqli_query($con,"SELECT * FROM DeliveryZone WHERE Status = 'ACTIVE'");
+                                        while($row = mysqli_fetch_assoc($res)){ $DeliveryZoneID = $row["DeliveryZoneID"]; $Found = "NO"; ?>
+										    <?php $res2 = mysqli_query($con,"SELECT * FROM CategoriesAndDeliveryZone WHERE CategoryId = '$CategoryId' AND DeliveryZoneID = '$DeliveryZoneID'"); 
+												while($row2 = mysqli_fetch_assoc($res2)){ $Found = "YES"; }
+											?>
+											<?php if($Found=="YES"){ ?>
+												<option value="<?php echo $row["DeliveryZoneID"] ?>" selected><?php echo $row["CityName"] ?></option>
+											<?php }else{ ?>
+											    <option value="<?php echo $row["DeliveryZoneID"] ?>" ><?php echo $row["CityName"] ?></option>
+											<?php } ?>	
+
+											
+										<?php } ?>
+                                                 
+                             </select>
+                        </div>
+                  </div>
+
+                 
+                    <input type="hidden" id="ID"  name="ID" value="<?php echo $CategoryId ?>" accept=".png, .jpg, .jpeg">
+                  </div>
+                  
+                  
+                                     <div class="col-md-12 col-lg-12 col-sm-12 col-12">
+                                       <div class="block-element m-t-20 m-b-30">
+                                          <button class="submit-btn1"> Update </button>   
+                                       </div>
+                                    </div>
+                  
+                  </div> 
+
+
+                           </form>
+                            
+                           </div>
+                        
+                     
+                     <div class="col-md-12 col-lg-6 col-sm-12 col-12">
+                        <div class="graphic-image1">
+                           <img src="images/product-graphics.png">
+                        </div>
+                     </div>
+					 
+					 </div>
+                  </div>
+               </form>
+            </section>
+            <!-- Main Content Section Ends Here -->
+         </main>
+         <!-- Right Section Ends Here -->
+      </section>
+      <!-- Bootstrap Javascript -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+      <script src="js/bootstrap.min.js"> </script>
+      <!-- Chart JS -->
+      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
+      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
+      <script src="js/functions.js"> </script>
+   </body>
+</html>

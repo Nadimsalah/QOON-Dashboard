@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Login | QOON Dashboard</title>
+      
+      <!-- Google Fonts: Inter -->
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+      
+      <!-- Font Awesome for Icons -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+      <style>
+         :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --input-focus: #3b82f6;
+         }
+
+         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+         }
+
+         body {
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+         }
+
+         .login-container {
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.6s ease-out;
+         }
+
+         @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+         }
+
+         .login-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+         }
+
+         .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+         }
+
+         .logo-section img {
+            max-width: 140px;
+            height: auto;
+         }
+
+         .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+         }
+
+         .login-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+         }
+
+         .login-header p {
+            font-size: 14px;
+            color: var(--text-muted);
+         }
+
+         .form-group {
+            margin-bottom: 20px;
+            position: relative;
+         }
+
+         .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+         }
+
+         .input-wrapper {
+            position: relative;
+         }
+
+         .input-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 16px;
+         }
+
+         .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+            outline: none;
+            background: #fcfdfe;
+         }
+
+         .input-wrapper input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background: #fff;
+         }
+
+         .btn-login {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 10px;
+         }
+
+         .btn-login:hover {
+            background-color: var(--primary-hover);
+         }
+
+         .btn-login:active {
+            transform: scale(0.98);
+         }
+
+         .footer-text {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-muted);
+         }
+
+         /* Mobile responsiveness */
+         @media (max-width: 480px) {
+            .login-card {
+               padding: 30px 20px;
+               border-radius: 16px;
+            }
+            
+            .login-header h1 {
+               font-size: 20px;
+            }
+         }
+      </style>
+   </head>
+   <body>
+      <div class="login-container">
+         <div class="login-card">
+            <div class="logo-section">
+               <!-- Using logo.png which was identified in your images folder -->
+               <img src="images/logo.png" alt="QOON Logo" onerror="this.src='https://via.placeholder.com/150x50?text=QOON'">
+            </div>
+
+            <form action="login.php" method="POST">
+               <div class="form-group">
+                  <label for="Email">Username / Email</label>
+                  <div class="input-wrapper">
+                     <i class="fa-regular fa-user"></i>
+                     <input type="text" id="Email" name="Email" placeholder="Enter your username" required autofocus>
+                  </div>
+               </div>
+
+               <div class="form-group">
+                  <label for="Password">Password</label>
+                  <div class="input-wrapper">
+                     <i class="fa-solid fa-lock"></i>
+                     <input type="password" id="Password" name="Password" placeholder="Enter your password" required>
+                  </div>
+               </div>
+
+               <button type="submit" class="btn-login">Sign In</button>
+            </form>
+
+            <div class="footer-text">
+               &copy; 2026 QOON Dashboard. All rights reserved.
+            </div>
+         </div>
+      </div>
+   </body>
+</html>

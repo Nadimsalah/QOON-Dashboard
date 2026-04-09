@@ -1,0 +1,1 @@
+UserID, name, PhoneNumber, Email, BirthDate, Gender, AccountType, AccountState, UserToken, UserFirebaseToken, FaceID, GoogleID, CreatedAtUser, UserPhoto, userRate, UserOrdersNum, sentcode, UserTotalReview, UserTotalRates, usertotalnumofrates, lastUpdatedUsers, UserType, CityID, Balance, CountryID, LANG, Pro, Contacts
