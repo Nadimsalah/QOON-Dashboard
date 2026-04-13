@@ -60,8 +60,12 @@ $pageTitle = "QOON Intelligence";
         /* Hide desktop sidebar on mobile — the sidebar.php outputs .sb-container */
         @media (max-width: 991px) {
             .sb-container { display: none !important; }
-            /* The chat main must fill the full width */
-            #root { height: calc(100dvh - 68px) !important; }
+            /* Chat root: full viewport minus 68px tab bar */
+            #root {
+                height: calc(100dvh - 68px) !important;
+                max-height: calc(100dvh - 68px) !important;
+                overflow: hidden;
+            }
         }
 
         /* Side Transition for native look */
@@ -121,19 +125,42 @@ $pageTitle = "QOON Intelligence";
         /* Stop iOS automatic zoom on focus */
         input, textarea { font-size: 16px !important; }
 
+        /* Quick prompt chips */
+        .quick-chips {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+        .quick-chips::-webkit-scrollbar { display: none; }
+        .chip {
+            flex: 0 0 auto;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .chip:hover, .chip:active { background: #F0F4FF; border-color: #623CEA; color: #623CEA; }
+
         /* Mobile input bar — sits above 68px bottom tab bar */
         @media (max-width: 991px) {
-            .input-bar-wrap {
-                margin-bottom: 0 !important;
-                padding-bottom: calc(env(safe-area-inset-bottom, 0px)) !important;
-            }
-            .chat-area-pad {
-                padding-bottom: 140px !important; /* input height + some breathing room */
-            }
             .input-footer {
-                bottom: 68px !important; /* sit above tab bar */
+                bottom: 68px !important;
                 padding-bottom: env(safe-area-inset-bottom, 0px) !important;
             }
+            .chat-area-pad {
+                padding-bottom: 160px !important;
+            }
+            /* Wider bubbles on mobile */
+            .chat-bubble-mobile { max-width: 92% !important; }
         }
     </style>
 </head>
@@ -273,8 +300,8 @@ $pageTitle = "QOON Intelligence";
 
                         {/* Message Stream */}
                         {messages.map((msg) => (
-                            <motion.div key={msg.id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} className={`flex group ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[88%] relative p-4 rounded-[22px] text-[15px] leading-relaxed shadow-sm ${
+                            <motion.div key={msg.id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                                <div className={`chat-bubble-mobile max-w-[88%] relative p-4 rounded-[22px] text-[15px] leading-relaxed shadow-sm ${
                                     msg.role === 'assistant' 
                                     ? 'bg-white border border-slate-100 text-slate-800 chat-bubble-assistant' 
                                     : 'bg-brand text-white font-medium chat-bubble-user'
@@ -288,39 +315,36 @@ $pageTitle = "QOON Intelligence";
                                                 className="bg-white/10 text-white outline-none border-none p-0 w-full min-h-[60px] resize-none overflow-hidden placeholder:text-white/50"
                                             />
                                             <div className="flex justify-end gap-2">
-                                                <button onClick={() => setEditingId(null)} className="text-[10px] font-black uppercase opacity-60 hover:opacity-100">Cancel</button>
+                                                <button onClick={() => setEditingId(null)} className="text-[10px] font-black uppercase opacity-60">Cancel</button>
                                                 <button onClick={saveEdit} className="text-[10px] font-black uppercase bg-white text-brand px-3 py-1 rounded-full">Save</button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <React.Fragment>
-                                            <div dangerouslySetInnerHTML={{ 
-                                                __html: msg.text
-                                                    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                                                    // Detect multiple images and group them
-                                                    .replace(/(!\[(.*?)\]\((.*?)\)\s*){2,}/g, (match) => {
-                                                        const items = match.match(/!\[(.*?)\]\((.*?)\)/g);
-                                                        const carouselHtml = items.map(item => {
-                                                            const [_, alt, url] = item.match(/!\[(.*?)\]\((.*?)\)/);
-                                                            return `<div class="carousel-item"><img src="${url}" alt="${alt}" /><div class="carousel-caption">${alt}</div></div>`;
-                                                        }).join('');
-                                                        return `<div class="image-carousel">${carouselHtml}</div>`;
-                                                    })
-                                                    // Fallback for single images
-                                                    .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="w-full max-w-[280px] rounded-3xl shadow-xl my-4 border border-slate-50" />')
-                                                    .replace(/\n/g, '<br/>') 
-                                            }}></div>
-                                            {msg.role === 'user' && (
-                                                <button 
-                                                    onClick={() => startEditing(msg)}
-                                                    className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:text-brand"
-                                                >
-                                                    <i className="fas fa-pen text-[10px]"></i>
-                                                </button>
-                                            )}
-                                        </React.Fragment>
+                                        <div dangerouslySetInnerHTML={{ 
+                                            __html: msg.text
+                                                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                                                .replace(/(!\[(.*?)\]\((.*?)\)\s*){2,}/g, (match) => {
+                                                    const items = match.match(/!\[(.*?)\]\((.*?)\)/g);
+                                                    const carouselHtml = items.map(item => {
+                                                        const [_, alt, url] = item.match(/!\[(.*?)\]\((.*?)\)/);
+                                                        return `<div class="carousel-item"><img src="${url}" alt="${alt}" /><div class="carousel-caption">${alt}</div></div>`;
+                                                    }).join('');
+                                                    return `<div class="image-carousel">${carouselHtml}</div>`;
+                                                })
+                                                .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="w-full max-w-[280px] rounded-3xl shadow-xl my-4 border border-slate-50" />')
+                                                .replace(/\n/g, '<br/>') 
+                                        }}></div>
                                     )}
                                 </div>
+                                {/* Touch-friendly edit button — always visible below user message */}
+                                {msg.role === 'user' && editingId !== msg.id && (
+                                    <button 
+                                        onClick={() => startEditing(msg)}
+                                        className="flex items-center gap-1 text-[11px] font-bold text-slate-400 hover:text-brand px-2 py-0.5 rounded-full hover:bg-slate-100 transition-colors"
+                                    >
+                                        <i className="fas fa-pen text-[9px]"></i> Edit
+                                    </button>
+                                )}
                             </motion.div>
                         ))}
 
@@ -341,21 +365,34 @@ $pageTitle = "QOON Intelligence";
                     </div>
 
                     {/* 3. Native App Style Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent z-30 input-footer">
-                        <div className="max-w-4xl mx-auto flex flex-col gap-3">
-                            <div className="flex items-center gap-3 bg-white border border-slate-200 p-2 md:p-3 rounded-[30px] shadow-2xl shadow-indigo-200/50 input-bar-wrap transition-shadow focus-within:shadow-indigo-300/30">
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-brand transition-colors"><i className="fas fa-paperclip"></i></button>
+                    <div className="absolute bottom-0 left-0 right-0 p-3 md:p-8 bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/95 to-transparent z-30 input-footer">
+                        <div className="max-w-4xl mx-auto flex flex-col gap-2">
+                            {/* Quick Prompt Chips */}
+                            {!isStarted && (
+                                <div className="quick-chips">
+                                    {[
+                                        { icon: 'fa-chart-line', text: "Today's revenue" },
+                                        { icon: 'fa-users',      text: 'New users this week' },
+                                        { icon: 'fa-motorcycle', text: 'Active drivers now' },
+                                    ].map(c => (
+                                        <button key={c.text} className="chip" onClick={() => { setInput(c.text); sendMessage(c.text); }}>
+                                            <i className={`fas ${c.icon} mr-1`}></i> {c.text}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2 bg-white border border-slate-200 p-2 md:p-3 rounded-[30px] shadow-2xl shadow-indigo-200/50 input-bar-wrap transition-shadow focus-within:shadow-indigo-300/30">
                                 <input 
                                     value={input} 
                                     onChange={e => setInput(e.target.value)} 
                                     onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                                    placeholder="Message QOON Intelligence..." 
-                                    className="flex-1 bg-transparent border-none outline-none py-2 text-[16px] text-slate-800 placeholder:text-slate-400"
+                                    placeholder="Ask QOON Intelligence..." 
+                                    className="flex-1 bg-transparent border-none outline-none px-3 py-2 text-[16px] text-slate-800 placeholder:text-slate-400"
                                 />
                                 <motion.button 
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => sendMessage()}
-                                    className={`w-12 h-12 rounded-[22px] flex items-center justify-center transition-all ${input.trim() ? 'bg-brand text-white shadow-lg' : 'bg-slate-100 text-slate-300'}`}
+                                    className={`w-11 h-11 rounded-[20px] flex items-center justify-center transition-all flex-shrink-0 ${input.trim() ? 'bg-brand text-white shadow-lg shadow-brand/30' : 'bg-slate-100 text-slate-300'}`}
                                 >
                                     <i className="fas fa-arrow-up"></i>
                                 </motion.button>

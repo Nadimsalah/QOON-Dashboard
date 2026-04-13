@@ -418,30 +418,66 @@ if($resTx) { while($row = mysqli_fetch_assoc($resTx)) { $orders[] = $row; } }
             .sb-container { display: none !important; }
             main.content-area { overflow-y: visible; }
 
-            .header-bar { flex-wrap: wrap; gap: 12px; padding: 14px 16px; }
+            /* Header */
+            .header-bar { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; position: static; }
             .page-title h1 { font-size: 20px; }
+            .page-title p { font-size: 13px; }
+            .search-container { width: 100%; }
             .search-container input { width: 100%; }
             .search-container input:focus { width: 100%; }
-            .search-container { width: 100%; }
 
-            .page-body { padding: 16px 16px 80px; }
+            /* Page body */
+            .page-body { padding: 12px 12px 80px; gap: 16px; }
 
-            /* Status filter pills: 2-col grid */
-            .status-pills { flex-wrap: wrap; gap: 8px; }
+            /* Filter nav: horizontal scrollable strip */
+            .filter-nav {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: none;
+                align-self: stretch;
+                padding: 4px;
+                gap: 4px;
+                border-radius: 10px;
+            }
+            .filter-nav::-webkit-scrollbar { display: none; }
+            .filter-pill {
+                flex: 0 0 auto;
+                scroll-snap-align: start;
+                white-space: nowrap;
+                padding: 8px 14px;
+                font-size: 13px;
+            }
 
-            /* Table: scrollable */
-            .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            /* Metrics: 4-col → 2-col */
+            .metrics-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .metric-card { padding: 16px; gap: 10px; border-radius: 12px; }
+            .metric-val { font-size: 24px; }
+
+            /* Table toolbar */
+            .table-toolbar { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+
+            /* Table horizontal scroll */
+            table { min-width: 480px; }
             td, th { padding: 12px 14px; font-size: 13px; }
 
-            .pagination-bar { flex-direction: column; gap: 10px; align-items: flex-start; padding: 14px 16px; }
+            /* Pagination */
+            .page-footer { flex-direction: column; gap: 10px; align-items: flex-start; padding: 14px 16px; }
         }
+
         @media (max-width: 600px) {
-            /* Keep Order ID, Status, Amount — hide Date, Shop, Driver cols */
+            /* Metrics: 2-col → 1-col */
+            .metrics-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .metric-val { font-size: 22px; }
+
+            /* Hide Participants column — keep ID, Status, Amount, Action */
             table thead tr th:nth-child(3),
-            table thead tr th:nth-child(4),
-            table tbody tr td:nth-child(3),
-            table tbody tr td:nth-child(4) { display: none; }
+            table tbody tr td:nth-child(3) { display: none; }
+
             td { font-size: 12px; padding: 10px 10px; }
+            th { font-size: 11px; padding: 10px 10px; }
         }
     </style>
 </head>

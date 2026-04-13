@@ -93,11 +93,11 @@ try {
 // 6. ASSET FEED
 $recent_foods = [];
 try {
-    $res = mysqli_query($con, "SELECT FoodName, FoodPrice, FoodPhoto FROM Foods ORDER BY FoodID DESC LIMIT 15");
+    $res = mysqli_query($con, "SELECT FoodName, FoodPrice FROM Foods ORDER BY FoodID DESC LIMIT 15");
     if ($res) {
         while ($row = mysqli_fetch_assoc($res)) {
             $name = $row['FoodName'] ?: "Unnamed Product";
-            $recent_foods[] = "- $name | Price: {$row['FoodPrice']} MAD | Image: {$row['FoodPhoto']}";
+            $recent_foods[] = "- $name | Price: {$row['FoodPrice']} MAD";
         }
     }
 } catch (\Throwable $e) {
@@ -125,8 +125,19 @@ ELITE QOON SNAPSHOT:
 {$ctx['recent_foods_list']}
 ";
 
-$systemPrompt = "You are QOON AI. Analyze the RECENT ORDERS to find Top Products. Use ![Name](URL) for visuals. Group images for carousels.
+$systemPrompt = "You are QOON Intelligence, the internal AI analyst for the QOON delivery platform. You have read-only access to live operational data.
 
+BEHAVIOR RULES:
+- Respond like a senior business analyst: concise, precise, professional.
+- Use numbers, percentages, and direct comparisons — no filler words.
+- Never use emojis.
+- Never share, mention, or reference product images or URLs.
+- Format with plain text only. Use bold (**text**) sparingly for key figures.
+- If the question is outside your data scope, say so clearly in one sentence.
+- Keep responses under 200 words unless explicitly asked for a full report.
+- When listing items, use a plain numbered or dashed list — no headers per item.
+
+LIVE DATA SNAPSHOT:
 $dbSummary";
 
 // ─── CALL DEEPSEEK API ────────────────────────────────────────────────────────
