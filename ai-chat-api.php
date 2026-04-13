@@ -47,13 +47,19 @@ function utf8ize($d)
 $ctx = [];
 
 // 1. HIGH-LEVEL ANALYTICS
-$ctx['total_revenue'] = (float) safeQuery($con, "SELECT IFNULL(SUM(OrderPrice),0) FROM Orders WHERE OrderState IN ('Done','Rated')");
-$ctx['total_users'] = (int) safeQuery($con, "SELECT COUNT(*) FROM Users");
-$ctx['total_orders'] = (int) safeQuery($con, "SELECT COUNT(*) FROM Orders");
+$ctx['total_revenue']     = (float) safeQuery($con, "SELECT IFNULL(SUM(OrderPrice),0) FROM Orders WHERE OrderState IN ('Done','Rated')");
+$ctx['total_users']       = (int)   safeQuery($con, "SELECT COUNT(*) FROM Users");
+$ctx['total_orders']      = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders");
+$ctx['total_drivers']     = (int)   safeQuery($con, "SELECT COUNT(*) FROM Drivers");
+$ctx['total_shops']       = (int)   safeQuery($con, "SELECT COUNT(*) FROM Shops");
+$ctx['today_orders']      = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders WHERE DATE(CreatedAtOrders)=CURDATE()");
+$ctx['new_users_week']    = (int)   safeQuery($con, "SELECT COUNT(*) FROM Users WHERE CreatedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+$ctx['pending_orders']    = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders WHERE OrderState='waiting'");
+$ctx['active_orders']     = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders WHERE OrderState='Doing'");
 
 // 2. FINANCIAL HEALTH INDEX
 $ctx['driver_debt'] = (float) safeQuery($con, "SELECT IFNULL(SUM(OrderPriceFromShop),0) FROM Orders WHERE PaidForDriver='NotPaid' AND Method='Cash' AND (OrderState='Rated' OR OrderState='Done')");
-$ctx['shop_owed'] = (float) safeQuery($con, "SELECT IFNULL(SUM(Balance),0) FROM Shops");
+$ctx['shop_owed']   = (float) safeQuery($con, "SELECT IFNULL(SUM(Balance),0) FROM Shops");
 
 // 3. TRANSACTION STREAM (SAFE PAYLOAD)
 $order_stream = [];
@@ -105,23 +111,33 @@ try {
 $ctx['recent_foods_list'] = count($recent_foods) > 0 ? implode("\n", $recent_foods) : "None";
 
 $dbSummary = "
-ELITE QOON SNAPSHOT:
-=== PERFORMANCE ===
-- Revenue: {$ctx['total_revenue']} MAD
-- Volume: {$ctx['total_orders']} Orders
+LIVE PLATFORM METRICS:
+
+=== USERS & ECOSYSTEM ===
+- Total Registered Users: {$ctx['total_users']}
+- New Users (Last 7 Days): {$ctx['new_users_week']}
+- Total Drivers: {$ctx['total_drivers']}
+- Total Shops: {$ctx['total_shops']}
+
+=== ORDER ACTIVITY ===
+- Total Orders (All Time): {$ctx['total_orders']}
+- Orders Today: {$ctx['today_orders']}
+- Currently Pending: {$ctx['pending_orders']}
+- Currently In Transit: {$ctx['active_orders']}
 - Top Seller: {$ctx['top_shop']}
 
-=== FINANCES ===
-- Driver Debt: {$ctx['driver_debt']} MAD
-- Shop Balance: {$ctx['shop_owed']} MAD
+=== FINANCIAL ===
+- Total Platform Revenue: {$ctx['total_revenue']} MAD
+- Unreturned Driver Cash: {$ctx['driver_debt']} MAD
+- Shop Balance Owed: {$ctx['shop_owed']} MAD
 
-=== INVENTORY ===
+=== INVENTORY BY CATEGORY ===
 {$ctx['category_stats']}
 
-=== RECENT ORDERS (PAYLOAD) ===
+=== RECENT ORDER DETAILS (last 30) ===
 {$ctx['order_stream']}
 
-=== PRODUCTS ===
+=== RECENT PRODUCTS (last 15) ===
 {$ctx['recent_foods_list']}
 ";
 
