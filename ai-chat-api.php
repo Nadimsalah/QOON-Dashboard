@@ -56,24 +56,6 @@ $ctx['today_orders']      = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders
 $ctx['new_users_week']    = (int)   safeQuery($con, "SELECT COUNT(*) FROM Users WHERE CreatedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
 $ctx['pending_orders']    = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders WHERE OrderState='waiting'");
 $ctx['active_orders']     = (int)   safeQuery($con, "SELECT COUNT(*) FROM Orders WHERE OrderState='Doing'");
-
-// 2. FINANCIAL HEALTH INDEX
-$ctx['driver_debt'] = (float) safeQuery($con, "SELECT IFNULL(SUM(OrderPriceFromShop),0) FROM Orders WHERE PaidForDriver='NotPaid' AND Method='Cash' AND (OrderState='Rated' OR OrderState='Done')");
-$ctx['shop_owed']   = (float) safeQuery($con, "SELECT IFNULL(SUM(Balance),0) FROM Shops");
-
-// 3. TRANSACTION STREAM (SAFE PAYLOAD)
-$order_stream = [];
-try {
-    $res = mysqli_query($con, "SELECT OrderDetails FROM Orders WHERE OrderState IN ('Done', 'Rated') ORDER BY OrderID DESC LIMIT 30");
-    if ($res) {
-        while ($row = mysqli_fetch_assoc($res)) {
-            $order_stream[] = $row['OrderDetails'];
-        }
-    }
-} catch (\Throwable $e) {
-}
-$ctx['order_stream'] = count($order_stream) > 0 ? implode(" | ", $order_stream) : "No transaction history";
-
 // 4. INVENTORY DENSITY
 $category_stats = [];
 try {
