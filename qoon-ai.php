@@ -9,7 +9,7 @@ $pageTitle = "QOON Intelligence";
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title><?= $pageTitle ?></title>
     <!-- Premium Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -71,6 +71,15 @@ $pageTitle = "QOON Intelligence";
         /* Side Transition for native look */
         .chat-bubble-assistant { border-bottom-left-radius: 4px !important; }
         .chat-bubble-user { border-bottom-right-radius: 4px !important; }
+
+        /* Arabic / RTL support */
+        .bubble-rtl {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Noto Naskh Arabic', 'Outfit', sans-serif;
+            line-height: 1.9;
+            letter-spacing: 0;
+        }
 
         /* Custom Scroll */
         .chat-scroll::-webkit-scrollbar { width: 3px; }
@@ -203,6 +212,9 @@ $pageTitle = "QOON Intelligence";
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = window.Motion || window.framerMotion || window.FramerMotion;
 
+        // Detect Arabic text
+        const isArabic = (text) => /[\u0600-\u06FF]/.test(text);
+
         function App() {
             const [input, setInput] = useState("");
             const [messages, setMessages] = useState([
@@ -301,7 +313,7 @@ $pageTitle = "QOON Intelligence";
                         {/* Message Stream */}
                         {messages.map((msg) => (
                             <motion.div key={msg.id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                                <div className={`chat-bubble-mobile max-w-[88%] relative p-4 rounded-[22px] text-[15px] leading-relaxed shadow-sm ${
+                                <div className={`chat-bubble-mobile max-w-[88%] relative p-4 rounded-[22px] text-[15px] leading-relaxed shadow-sm ${isArabic(msg.text) ? 'bubble-rtl' : ''} ${
                                     msg.role === 'assistant' 
                                     ? 'bg-white border border-slate-100 text-slate-800 chat-bubble-assistant' 
                                     : 'bg-brand text-white font-medium chat-bubble-user'
