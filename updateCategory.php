@@ -150,6 +150,16 @@
 										$EnglishCategory = $row["EnglishCategory"];
 										$FrenchCategory = $row["FrenchCategory"];
 										$Photo = $row["Photo"];
+										if ($Photo) {
+										   $Photo = str_replace([
+                                               'https://jibler.app/db/db/', 
+                                               'https://jibler.app/dash/', 
+                                               'http://jibler.app/db/db/', 
+                                               'https://dashboard.jibler.ma/dash/', 
+                                               'https://qoon.app/dash/'
+                                           ], '', $Photo);
+                                           $Photo = ltrim($Photo, '/');
+										}
 										$priority = $row["priority"];
 										$Type     = $row["Type"];
 										$Pro     = $row["Pro"];

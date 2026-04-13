@@ -196,6 +196,22 @@ if ($id) {
             border: 2px dashed var(--border-color);
         }
 
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+            .breadcrumb { font-size: 13px; }
+            .flex-grid { grid-template-columns: 1fr; gap: 16px; }
+            .glass-panel { padding: 20px; }
+        }
+        @media (max-width: 600px) {
+            /* Stack the add input + button vertically */
+            .input-group { flex-direction: column; }
+            .submit-btn { width: 100%; padding: 14px; border-radius: 12px; }
+        }
     </style>
 </head>
 <body>

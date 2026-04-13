@@ -19,11 +19,11 @@ if($ProductID==""){
 
   $photo1name="w-".rand();
 
-  $path = "db/db/photo/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
   $t = explode(",",$SliderPosition);
  
-  $actualpath = "https://jibler.app/$path";
+  $actualpath = "https://qoon.app/$path";
  
   $path = "photo/$photo1name.png";
  

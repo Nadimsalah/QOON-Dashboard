@@ -127,6 +127,61 @@ $flow_data = [$eradShops, $eradDrivers, $salesCut, $deliveryCut];
         .kpi-item h2 span { font-size: 16px; font-weight: 700; opacity: 0.7; }
         
         canvas { width: 100% !important; flex:1; max-height:350px; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+
+            /* Header: wrap export button */
+            .header { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+
+            /* Top grid: stack line chart above KPI board */
+            .panel-grid-top { grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+            .panel-grid-bot { grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+
+            /* Chart cards: comfortable padding */
+            .chart-card { padding: 20px; border-radius: 18px; }
+            .ch-title { font-size: 15px; }
+            .ch-sub { font-size: 12px; margin-bottom: 16px; }
+
+            /* KPI board: switch from tall vertical to compact horizontal row */
+            .kpi-board {
+                padding: 24px;
+                border-radius: 18px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            .kpi-item { margin-bottom: 0; flex: 1; min-width: 140px; }
+            .kpi-item:last-child { border-top: none !important; padding-top: 0 !important; }
+            .kpi-item h2 { font-size: 22px; }
+            .kpi-item h2 span { font-size: 13px; }
+            .kpi-item p { font-size: 11px; }
+
+            /* Limit canvas heights on tablet */
+            canvas { max-height: 280px !important; }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .main-panel { padding: 12px 12px 80px; }
+            .chart-card { padding: 16px; border-radius: 14px; }
+
+            /* KPI board: stack vertically again on very small screens */
+            .kpi-board { flex-direction: column; gap: 12px; padding: 20px; }
+            .kpi-item { min-width: unset; border-top: none !important; padding-top: 0 !important; }
+            .kpi-item h2 { font-size: 20px; }
+
+            /* Smaller charts on phone */
+            canvas { max-height: 220px !important; }
+
+            /* PDF button: icon only on phone */
+            .pdf-btn-text { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -141,8 +196,8 @@ $flow_data = [$eradShops, $eradDrivers, $salesCut, $deliveryCut];
                     <span style="color: var(--accent-purple);">Financial Intelligence Board</span>
                 </div>
                 
-                <a href="pdf_export_fallback.php" target="_blank" style="background:var(--accent-purple); color:#FFF; padding:10px 20px; border-radius:12px; font-size:13px; font-weight:700; text-decoration:none; display:flex; gap:8px; align-items:center;">
-                    <i class="fas fa-file-pdf"></i> Generate Master Ledger
+                <a href="pdf_export_fallback.php" target="_blank" style="background:var(--accent-purple); color:#FFF; padding:10px 20px; border-radius:12px; font-size:13px; font-weight:700; text-decoration:none; display:flex; gap:8px; align-items:center; white-space:nowrap; flex-shrink:0;">
+                    <i class="fas fa-file-pdf"></i> <span class="pdf-btn-text">Generate Master Ledger</span>
                 </a>
             </header>
 
@@ -274,7 +329,10 @@ $flow_data = [$eradShops, $eradDrivers, $salesCut, $deliveryCut];
             options: {
                 responsive: true, maintainAspectRatio: false, cutout: '75%',
                 plugins: {
-                    legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 10, font: {family:'Inter', weight:'600'}, padding:20 } },
+                    legend: {
+                        position: window.innerWidth <= 600 ? 'bottom' : 'right',
+                        labels: { usePointStyle: true, boxWidth: 10, font: {family:'Inter', weight:'600'}, padding:20 }
+                    },
                     tooltip: { callbacks: { label: function(ctx) { return ' ' + ctx.raw.toLocaleString() + ' MAD'; } } }
                 }
             }

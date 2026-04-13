@@ -78,6 +78,21 @@ if($resStory) {
         .add-card:hover { background: #E6E1FA; }
         .add-icon-wrapper { width: 60px; height: 60px; background: #FFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(98, 60, 234, 0.1); }
 
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .story-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+            .story-card { height: 280px; }
+        }
+        @media (max-width: 600px) {
+            .story-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .story-card { height: 240px; border-radius: 14px; }
+        }
     </style>
 </head>
 <body>

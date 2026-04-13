@@ -4,15 +4,30 @@ mysqli_set_charset($con, "utf8mb4");
 
 $action = $_GET['action'] ?? '';
 
+function ensureFullUrl($path, $domainName) {
+    if (!$path || $path === 'NONE' || $path === '0') return $path;
+    // Strip old hardcoded domains to restore the correct relative path
+    $path = str_replace([
+        'https://jibler.app/db/db/', 
+        'https://jibler.app/dash/', 
+        'http://jibler.app/db/db/', 
+        'https://dashboard.jibler.ma/dash/',
+        'https://qoon.app/dash/'
+    ], '', $path);
+    
+    return ltrim($path, '/');
+}
+
 if ($action == 'sliders') {
     sleep(1); // Artificial delay to ensure shimmer is visible
     echo '<a class="thumb-box add-new" href="add-slider.php"> <i class="fas fa-plus"></i> Add Slide </a>';
     $resSl = mysqli_query($con, "SELECT * FROM Sliders");
     while ($row = mysqli_fetch_assoc($resSl)) {
+        $imgPath = ensureFullUrl($row['SliderPhoto'], $DomainNamee);
         echo '
         <div class="thumb-box shimmer">
             <a class="trash-btn" href="DeleteSlider.php?HomeSlidesID=' . $row['SliderID'] . '" onclick="return confirm(\'Delete slide?\');"><i class="fas fa-trash"></i></a>
-            <img src="' . $row['SliderPhoto'] . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
+            <img src="' . $imgPath . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
         </div>';
     }
 }
@@ -22,11 +37,12 @@ if ($action == 'categories') {
     echo '<a class="thumb-box add-new" href="add-category.php"> <i class="fas fa-plus"></i> Add Category </a>';
     $resCat = mysqli_query($con, "SELECT * FROM Categories ORDER BY priority DESC");
     while ($row = mysqli_fetch_assoc($resCat)) {
+        $imgPath = ensureFullUrl(htmlspecialchars($row['Photo']), $DomainNamee);
         echo '
         <div class="thumb-box shimmer" style="padding:15px; position:relative;">
             <a class="trash-btn" href="DeleteCategory.php?CategoryId=' . $row['CategoryId'] . '" onclick="return confirm(\'Delete category completely?\');" style="z-index:5;"><i class="fas fa-trash"></i></a>
             <a href="updateCategory.php?CategoryId=' . $row['CategoryId'] . '" style="display:block; width:100%;">
-                <img src="' . htmlspecialchars($row['Photo']) . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
+                <img src="' . $imgPath . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
             </a>
         </div>';
     }
@@ -37,10 +53,11 @@ if ($action == 'partners') {
     echo '<a class="thumb-box add-new" href="add-slider-Partner.php"> <i class="fas fa-plus"></i> Add Partner Slide </a>';
     $resSlP = mysqli_query($con, "SELECT * FROM SliderPartner");
     while ($row = mysqli_fetch_assoc($resSlP)) {
+        $imgPath = ensureFullUrl($row['SliderPhoto'], $DomainNamee);
         echo '
         <div class="thumb-box shimmer">
             <a class="trash-btn" href="DeleteSliderPartner.php?SliderPartnerID=' . $row['SliderPartnerID'] . '" onclick="return confirm(\'Delete slide?\');"><i class="fas fa-trash"></i></a>
-            <img src="' . $row['SliderPhoto'] . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
+            <img src="' . $imgPath . '" onerror="this.onerror=null; this.src=\'images/logo.png\'; this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');" onload="this.parentElement.classList.remove(\'shimmer\'); this.classList.add(\'img-loaded\');">
         </div>';
     }
 }
@@ -53,7 +70,7 @@ if ($action == 'posts') {
         echo '
         <div class="social-card">
             <div class="social-header">
-                <img src="' . $row['ShopLogo'] . '" onerror="this.src=\'images/placeholder.png\'">
+                <img src="' . ensureFullUrl($row['ShopLogo'], $DomainNamee) . '" onerror="this.src=\'images/placeholder.png\'">
                 <div class="social-meta">
                     <h5><a href="shop-profile.php?id=' . $row['ShopID'] . '" style="color:inherit; text-decoration:none;">' . $row['ShopName'] . '</a></h5>
                     <p>' . $row['CreatedAtPosts'] . ' &nbsp;•&nbsp; <span id="stat_' . $row['PostId'] . '" style="color:' . $statusColor . '; font-weight:800;">' . $row['PostStatus'] . '</span></p>
@@ -63,16 +80,20 @@ if ($action == 'posts') {
             <div class="social-body">' . nl2br(htmlspecialchars($row['PostText'])) . '</div>
             <div class="social-media">';
                 if ($row['PostPhoto'] && $row['PostPhoto'] != 'NONE' && $row['PostPhoto'] != '0') {
-                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$row['PostPhoto']}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
+                    $pUrl = ensureFullUrl($row['PostPhoto'], $DomainNamee);
+                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$pUrl}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
                 }
                 if ($row['PostPhoto2'] && $row['PostPhoto2'] != 'NONE' && $row['PostPhoto2'] != '0') {
-                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$row['PostPhoto2']}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
+                    $pUrl2 = ensureFullUrl($row['PostPhoto2'], $DomainNamee);
+                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$pUrl2}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
                 }
                 if ($row['PostPhoto3'] && $row['PostPhoto3'] != 'NONE' && $row['PostPhoto3'] != '0') {
-                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$row['PostPhoto3']}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
+                    $pUrl3 = ensureFullUrl($row['PostPhoto3'], $DomainNamee);
+                    echo "<div class='shimmer' style='border-radius:16px; overflow:hidden; min-height:300px;'><img src='{$pUrl3}' style='opacity:0; transition:opacity 0.4s; border-radius:16px; width:100%;' onload=\"this.parentElement.classList.remove('shimmer'); this.parentElement.style.minHeight='auto'; this.classList.add('img-loaded');\" onerror=\"this.onerror=null; this.src='images/placeholder.png'; this.parentElement.classList.remove('shimmer'); this.classList.add('img-loaded');\"></div>";
                 }
                 if ($row['Video'] && $row['Video'] != 'NONE' && $row['Video'] != '0') {
-                    echo "<div style='border-radius:16px; overflow:hidden;'><video src='{$row['Video']}' controls style='width:100%; border-radius:16px; min-height:300px; background:#000;'></video></div>";
+                    $vUrl = ensureFullUrl($row['Video'], $DomainNamee);
+                    echo "<div style='border-radius:16px; overflow:hidden;'><video src='{$vUrl}' controls style='width:100%; border-radius:16px; min-height:300px; background:#000;'></video></div>";
                 }
         echo '
             </div>
@@ -133,14 +154,14 @@ if ($action == 'stories') {
             <div class="tinder-badge"><i class="fas fa-eye"></i> Under Review</div>';
             
             if ($row['StotyType'] == 'Photos') {
-                echo '<img src="' . $row['StoryPhoto'] . '" class="tinder-img" onerror="this.src=\'images/placeholder.png\'">';
+                echo '<img src="' . ensureFullUrl($row['StoryPhoto'], $DomainNamee) . '" class="tinder-img" onerror="this.src=\'images/placeholder.png\'">';
             } else {
-                echo '<video src="' . $row['StoryPhoto'] . '" class="tinder-img" autoplay loop muted></video>';
+                echo '<video src="' . ensureFullUrl($row['StoryPhoto'], $DomainNamee) . '" class="tinder-img" autoplay loop muted></video>';
             }
             
         echo '
             <div class="tinder-meta">
-                <h3><img src="' . $row['ShopLogo'] . '" onerror="this.src=\'images/placeholder.png\'"> ' . $row['ShopName'] . '</h3>
+                <h3><img src="' . ensureFullUrl($row['ShopLogo'], $DomainNamee) . '" onerror="this.src=\'images/placeholder.png\'"> ' . $row['ShopName'] . '</h3>
                 <p>Story Tag ID: #' . $stryId . ' &nbsp;|&nbsp; Waiting for Approval</p>
             </div>
             <div class="tinder-actions">
@@ -188,7 +209,7 @@ if ($action == 'boosts') {
         <tr>
             <td>
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="' . $row['ShopLogo'] . '" style="width:30px; height:30px; border-radius:8px;">
+                    <img src="' . ensureFullUrl($row['ShopLogo'], $DomainNamee) . '" style="width:30px; height:30px; border-radius:8px;">
                     <span style="font-weight:800; font-size:13px;">' . $row['ShopName'] . '</span>
                 </div>
             </td>
@@ -196,12 +217,12 @@ if ($action == 'boosts') {
             <td>';
             
             if ($row['BoostPhoto'] && $row['BoostPhoto'] != 'NONE') {
-                $bfile = strtolower($row['BoostPhoto']);
-                if (strpos($bfile, '.mp4') !== false || strpos($bfile, '.mov') !== false) {
-                    echo '<video src="'.$row['BoostPhoto'].'" style="width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--border-color); cursor:pointer;" controls muted></video>';
+                $bfile = ensureFullUrl($row['BoostPhoto'], $DomainNamee);
+                if (strpos(strtolower($bfile), '.mp4') !== false || strpos(strtolower($bfile), '.mov') !== false) {
+                    echo '<video src="'.$bfile.'" style="width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--border-color); cursor:pointer;" controls muted></video>';
                 } else {
-                    echo '<a href="'.$row['BoostPhoto'].'" target="_blank">
-                              <img src="'.$row['BoostPhoto'].'" style="width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--border-color); transition:0.3s;" onerror="this.src=\'images/placeholder.png\'">
+                    echo '<a href="'.$bfile.'" target="_blank">
+                              <img src="'.$bfile.'" style="width:70px; height:70px; border-radius:10px; object-fit:cover; border:1px solid var(--border-color); transition:0.3s;" onerror="this.src=\'images/placeholder.png\'">
                           </a>';
                 }
             } else {

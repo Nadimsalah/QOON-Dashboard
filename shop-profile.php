@@ -136,6 +136,85 @@ if (empty($cleanCover)) $cleanCover = 'images/default_cover.jpg'; // Adjust fall
         .hidden-file { display: none; }
         .upload-badge { position: absolute; background: rgba(0,0,0,0.6); color: #fff; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: 0.3s; font-size: 24px; }
         .image-uploader-hero:hover .upload-badge, .profile-img-container:hover .upload-badge { opacity: 1; backdrop-filter: blur(2px); }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+
+            /* Hide desktop sidebar rail */
+            .sidebar { display: none !important; }
+
+            .main-panel {
+                padding: 16px 16px 80px;
+                overflow-y: visible;
+                overflow-x: hidden;
+            }
+
+            /* Breadcrumb header */
+            .header { flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+
+            /* Action bar: wrap buttons */
+            .top-action-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            .top-action-bar > div { flex-wrap: wrap; gap: 8px; }
+            .btn-act { font-size: 11px; padding: 9px 12px; }
+
+            /* Metrics: 3 cols → stack 2+1 on tablet */
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+            .metrics-grid .m-card:last-child { grid-column: 1 / -1; }
+            .m-info span { font-size: 20px; }
+
+            /* Dashboard grid: drop fixed 450px col */
+            .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
+
+            /* Form: single column */
+            .form-grid { grid-template-columns: 1fr; gap: 14px; }
+
+            /* Card */
+            .card-body { padding: 20px; }
+            .card-header { padding: 16px 20px; font-size: 14px; }
+
+            /* Cover banner shorter */
+            .image-uploader-hero { height: 160px; margin-bottom: 45px; }
+
+            /* GPS inputs: stack */
+            .form-grid .input-group.fw > div[style*="flex"] {
+                flex-direction: column !important;
+            }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .main-panel { padding: 12px 12px 80px; }
+
+            /* Metrics: all single column */
+            .metrics-grid { grid-template-columns: 1fr; }
+            .metrics-grid .m-card:last-child { grid-column: auto; }
+            .m-card { padding: 16px; }
+            .m-icon { width: 40px; height: 40px; font-size: 17px; }
+            .m-info span { font-size: 18px; }
+
+            /* Cover banner even shorter */
+            .image-uploader-hero { height: 130px; margin-bottom: 40px; }
+            .profile-img-container { width: 80px; height: 80px; bottom: -40px; left: 20px; }
+
+            /* Toggle switches stack content */
+            .toggle-switch { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+            .btn-act { font-size: 11px; padding: 8px 10px; }
+        }
+
     </style>
 </head>
 <body>

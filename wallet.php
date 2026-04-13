@@ -2,186 +2,441 @@
 require "conn.php";
 mysqli_set_charset($con, "utf8mb4");
 
-// 1. Total Income
-$resIncome = mysqli_query($con, "SELECT SUM(TotalIncome) as val FROM Money");
+$resIncome   = mysqli_query($con, "SELECT SUM(TotalIncome) as val FROM Money");
 $TotalIncome = mysqli_fetch_assoc($resIncome)['val'] ?? 0;
 
-// 2. Financial Portfolios (User Balances + Shop Balances)
 $resUserBal = mysqli_query($con, "SELECT SUM(Balance) as val FROM Users");
-$userBal = mysqli_fetch_assoc($resUserBal)['val'] ?? 0;
+$userBal    = mysqli_fetch_assoc($resUserBal)['val'] ?? 0;
 
 $resShopBal = mysqli_query($con, "SELECT SUM(Balance) as val FROM Shops");
-$shopBal = mysqli_fetch_assoc($resShopBal)['val'] ?? 0;
-$TotalBal = $userBal + $shopBal;
+$shopBal    = mysqli_fetch_assoc($resShopBal)['val'] ?? 0;
+$TotalBal   = $userBal + $shopBal;
 
-// 3. Shop Needs Money (Shops Balance)
-$ShopNeedMoney = $shopBal;
-
-// 4. Drivers Did Not Pay (Owed to Platform)
-// Legacy logic ran a massive nested loop across all orders for all drivers. 
-// We simplify it to a direct aggregation query approximation for the dashboard speed, or run a fast query.
-$resDriverDebt = mysqli_query($con, "
-    SELECT SUM(OrderPriceFromShop) as Debt 
-    FROM Orders 
-    WHERE (OrderState='Rated' OR OrderState='Done') AND PaidForDriver='NotPaid' AND Method='CASH'
-");
-$MustPaidw = mysqli_fetch_assoc($resDriverDebt)['Debt'] ?? 0;
-
+$resDriverDebt = mysqli_query($con, "SELECT SUM(OrderPriceFromShop) as Debt FROM Orders WHERE (OrderState='Rated' OR OrderState='Done') AND PaidForDriver='NotPaid' AND Method='CASH'");
+$MustPaidw     = mysqli_fetch_assoc($resDriverDebt)['Debt'] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financial Wallet Tracker | QOON</title>
+    <title>Financial Core | QOON</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --bg-app: #F5F6FA; --bg-white: #FFFFFF;
-            --text-dark: #2A3042; --text-gray: #A6A9B6;
-            --accent-purple: #623CEA; --accent-purple-light: #F0EDFD;
-            --accent-green: #10B981; --accent-blue: #007AFF; --accent-orange: #F59E0B; --accent-red: #EF4444;
-            --border-color: #F0F2F6;
-            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.03);
-            --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.05);
+            --bg-master: #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --border-subtle: #E5E7EB;
+            --border-focus: #D1D5DB;
+
+            --text-strong: #111827;
+            --text-base: #374151;
+            --text-muted: #6B7280;
+            --text-on-dark: #FFFFFF;
+
+            --green-bg: #ECFDF5; --green-text: #059669;
+            --blue-bg: #EFF6FF;  --blue-text: #2563EB;
+            --purple-bg: #F5F3FF; --purple-text: #7C3AED;
+            --red-bg: #FEF2F2;   --red-text: #DC2626;
+
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
-        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
 
-        /* Sidebar Architecture */
-        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
-        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
-        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
-        .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
-        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
 
-        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+        body {
+            background: var(--bg-master);
+            color: var(--text-base);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        /* Module Header */
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: 16px; box-shadow: var(--shadow-card); }
-        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
+        .layout-wrapper { display: flex; width: 100%; height: 100%; }
 
-        /* 3D Glassmorphic Metric Deck */
-        .metric-deck { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .m-card { background: var(--bg-white); border-radius: 20px; padding: 25px 30px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 15px; position:relative; overflow:hidden; transition: 0.3s; text-decoration: none; }
-        .m-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-float); }
-        
-        .m-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-        .bg-green { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .bg-blue { background: rgba(0, 122, 255, 0.1); color: var(--accent-blue); }
-        .bg-red { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
-        .bg-purple { background: rgba(98, 60, 234, 0.1); color: var(--accent-purple); }
+        main.content-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
 
-        .m-title { font-size: 13px; font-weight: 800; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
-        .m-value { font-size: 28px; font-weight: 800; color: var(--text-dark); display: flex; align-items: baseline; gap: 5px; }
-        .m-currency { font-size: 14px; font-weight: 700; color: var(--text-gray); }
+        main.content-area::-webkit-scrollbar { width: 6px; }
+        main.content-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
-        /* Lower Data Grid (Replaces Broken Chart) */
-        .bottom-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; flex: 1; }
-        .glass-panel { background: var(--bg-white); border-radius: 20px; padding: 30px; box-shadow: var(--shadow-card); display:flex; flex-direction:column; }
-        .panel-title { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        
-        .action-list { display: flex; flex-direction: column; gap: 15px; }
-        .action-btn { padding: 18px 25px; border-radius: 16px; background: var(--bg-app); text-decoration: none; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--text-dark); transition: 0.2s; border: 1px solid var(--border-color); }
-        .action-btn:hover { background: var(--accent-purple-light); border-color: var(--accent-purple); color: var(--accent-purple); }
-        .action-icon { width: 40px; height: 40px; background: #FFF; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--accent-purple); font-size: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* Header */
+        .header-bar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: -0.5px;
+        }
+        .page-title p {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .date-tag {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
 
+        /* Body */
+        .page-body {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: 0.2s;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+            border-color: var(--border-focus);
+        }
+        .metric-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+        }
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .metric-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .metric-val span {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+        .metric-arrow {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            color: var(--border-focus);
+            transition: 0.2s;
+        }
+        .metric-card:hover .metric-arrow { color: var(--text-strong); right: 16px; }
+
+        .mi-green  { background: var(--green-bg);  color: var(--green-text); }
+        .mi-blue   { background: var(--blue-bg);   color: var(--blue-text); }
+        .mi-purple { background: var(--purple-bg); color: var(--purple-text); }
+        .mi-red    { background: var(--red-bg);    color: var(--red-text); }
+
+        /* Two-col layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        /* Highlight Banner */
+        .highlight-banner {
+            background: var(--text-strong);
+            color: var(--text-on-dark);
+            border-radius: 20px;
+            padding: 48px 44px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+        }
+        .highlight-banner .tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.4);
+        }
+        .highlight-banner h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+            max-width: 480px;
+            color: #FFFFFF;
+        }
+        .highlight-banner p {
+            font-size: 14px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.6;
+            max-width: 440px;
+            font-weight: 500;
+        }
+        .banner-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #FFFFFF;
+            color: var(--text-strong);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            align-self: flex-start;
+            transition: 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .banner-cta:hover { opacity: 0.85; }
+
+        /* Action Card */
+        .action-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .action-panel-head {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-strong);
+            background: #F9FAFB;
+        }
+        .action-list { padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .action-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-strong);
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.15s;
+        }
+        .action-item:hover {
+            background: #F3F4F6;
+        }
+        .action-item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .action-ico {
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-surface);
+        }
+        .action-item .arrow {
+            font-size: 12px;
+            color: var(--border-focus);
+        }
+        .action-item:hover .arrow { color: var(--text-strong); }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .layout-wrapper { flex-direction: column; height: auto; overflow: visible; }
+            .sb-container { display: none !important; }
+            main.content-area { overflow-y: visible; }
+
+            .header-bar { flex-wrap: wrap; gap: 10px; padding: 14px 16px; position: static; }
+            .page-title h1 { font-size: 20px; }
+            .date-tag { font-size: 12px; padding: 6px 12px; }
+            .page-body { padding: 16px 16px 80px; gap: 20px; }
+
+            /* 4-col metrics → 2-col */
+            .metrics-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+            .metric-card { padding: 20px 16px; }
+            .metric-val { font-size: 20px; }
+
+            /* two-col → single column */
+            .two-col { grid-template-columns: 1fr; gap: 16px; }
+            .highlight-banner { padding: 28px 24px; border-radius: 14px; }
+            .highlight-banner h2 { font-size: 20px; }
+            .highlight-banner p { font-size: 13px; }
+            .action-item { padding: 14px 12px; }
+        }
+        @media (max-width: 600px) {
+            /* 2-col → 1-col */
+            .metrics-grid { grid-template-columns: 1fr; gap: 10px; }
+            .metric-val { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-envelope">
+    <div class="layout-wrapper">
         <?php include 'sidebar.php'; ?>
 
-        <main class="main-panel">
-            <header class="header">
-                <div class="breadcrumb">
-                    <i class="fas fa-wallet" style="color:var(--accent-purple);"></i>
-                    <span>Financial Overview</span>
+        <main class="content-area">
+
+            <header class="header-bar">
+                <div class="page-title">
+                    <h1>Financial Core</h1>
+                    <p>Manage QOON marketplace capital &amp; settlements.</p>
                 </div>
-                <div style="font-size:13px; font-weight:700; color:var(--text-gray); background:var(--bg-app); padding:8px 16px; border-radius:10px;">
-                    <?= date('l, F j, Y') ?>
+                <div class="date-tag">
+                    <i class="far fa-calendar" style="margin-right:8px; color:var(--text-muted);"></i>
+                    <?= date('l, d M Y') ?>
                 </div>
             </header>
 
-            <div class="metric-deck">
-                <a href="walletErad.php" class="m-card">
-                    <div class="m-icon bg-green"><i class="fas fa-hand-holding-usd"></i></div>
-                    <div>
-                        <div class="m-title">Total Income</div>
-                        <div class="m-value"><?= number_format($TotalIncome, 2) ?> <span class="m-currency">MAD</span></div>
-                    </div>
-                </a>
+            <div class="page-body">
 
-                <a href="walletPayToUser.php" class="m-card">
-                    <div class="m-icon bg-blue"><i class="fas fa-piggy-bank"></i></div>
-                    <div>
-                        <div class="m-title">Financial Portfolios</div>
-                        <div class="m-value"><?= number_format($TotalBal, 2) ?> <span class="m-currency">MAD</span></div>
-                    </div>
-                </a>
-
-                <a href="walletShopNeedMoney.php" class="m-card">
-                    <div class="m-icon bg-purple"><i class="fas fa-store"></i></div>
-                    <div>
-                        <div class="m-title">Shop Owed Balances</div>
-                        <div class="m-value"><?= number_format($ShopNeedMoney, 2) ?> <span class="m-currency">MAD</span></div>
-                    </div>
-                </a>
-
-                <a href="walletDriverStopMoney.php" class="m-card">
-                    <div class="m-icon bg-red"><i class="fas fa-motorcycle"></i></div>
-                    <div>
-                        <div class="m-title">Unpaid Drivers Penalty</div>
-                        <div class="m-value"><?= number_format($MustPaidw, 2) ?> <span class="m-currency">MAD</span></div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="bottom-grid">
-                
-                <div class="glass-panel" style="background: linear-gradient(135deg, var(--accent-purple), #4A2BBF); color: #FFF;">
-                    <div class="panel-title" style="color: #FFF;"><i class="fas fa-chart-line"></i> Revenue Analytics Core</div>
-                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; gap:20px;">
-                        <h2 style="font-size:32px; font-weight:800; line-height:1.2;">Your platform processed<br><span style="color:#A389F4;">Zero-Latency Financials</span><br>successfully today.</h2>
-                        <p style="font-size:15px; font-weight:500; opacity:0.8; max-width:400px; line-height:1.6;">The legacy analytics chart engine has been suspended in favor of real-time SQL aggregation to preserve maximum query execution speed across the administrative dashboard.</p>
-                        <a href="walletCharts.php" style="padding:14px 28px; background:#FFF; color:var(--accent-purple); text-decoration:none; border-radius:12px; font-weight:800; font-size:14px; display:inline-block; margin-top:10px; box-shadow: 0 10px 20px rgba(0,0,0,0.15);">Access Deep Analytics</a>
-                    </div>
+                <!-- Metrics Row -->
+                <div class="metrics-grid">
+                    <a href="walletErad.php" class="metric-card">
+                        <div class="metric-icon mi-green"><i class="fas fa-vault"></i></div>
+                        <div>
+                            <div class="metric-label">Managed Income</div>
+                            <div class="metric-val"><?= number_format($TotalIncome, 2) ?><span>MAD</span></div>
+                        </div>
+                        <i class="fas fa-arrow-right metric-arrow"></i>
+                    </a>
+                    <a href="walletPayToUser.php" class="metric-card">
+                        <div class="metric-icon mi-blue"><i class="fas fa-piggy-bank"></i></div>
+                        <div>
+                            <div class="metric-label">Portfolio Balance</div>
+                            <div class="metric-val"><?= number_format($TotalBal, 2) ?><span>MAD</span></div>
+                        </div>
+                        <i class="fas fa-arrow-right metric-arrow"></i>
+                    </a>
+                    <a href="walletShopNeedMoney.php" class="metric-card">
+                        <div class="metric-icon mi-purple"><i class="fas fa-store"></i></div>
+                        <div>
+                            <div class="metric-label">Shop Liability</div>
+                            <div class="metric-val"><?= number_format($shopBal, 2) ?><span>MAD</span></div>
+                        </div>
+                        <i class="fas fa-arrow-right metric-arrow"></i>
+                    </a>
+                    <a href="walletDriverStopMoney.php" class="metric-card">
+                        <div class="metric-icon mi-red"><i class="fas fa-motorcycle"></i></div>
+                        <div>
+                            <div class="metric-label">Fleet Debt</div>
+                            <div class="metric-val"><?= number_format($MustPaidw, 2) ?><span>MAD</span></div>
+                        </div>
+                        <i class="fas fa-arrow-right metric-arrow"></i>
+                    </a>
                 </div>
 
-                <div class="glass-panel">
-                    <div class="panel-title"><i class="fas fa-cogs"></i> Financial Actions</div>
-                    <div class="action-list">
-                        <a href="ControlOdersPerc.php" class="action-btn">
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <div class="action-icon"><i class="fas fa-sliders-h"></i></div>
-                                <span>Control Order Fees</span>
-                            </div>
-                            <i class="fas fa-chevron-right" style="color:var(--text-gray);"></i>
-                        </a>
-                        <a href="walletErad.php" class="action-btn">
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <div class="action-icon" style="color:var(--accent-green);"><i class="fas fa-file-invoice-dollar"></i></div>
-                                <span>Income Logs</span>
-                            </div>
-                            <i class="fas fa-chevron-right" style="color:var(--text-gray);"></i>
-                        </a>
-                        <a href="walletCharts.php" class="action-btn">
-                            <div style="display:flex; align-items:center; gap:15px;">
-                                <div class="action-icon" style="color:var(--accent-blue);"><i class="fas fa-chart-pie"></i></div>
-                                <span>View Ledgers</span>
-                            </div>
-                            <i class="fas fa-chevron-right" style="color:var(--text-gray);"></i>
+                <!-- Two-Col Section -->
+                <div class="two-col">
+
+                    <!-- Highlight Banner -->
+                    <div class="highlight-banner">
+                        <div class="tag">Intelligence Engine</div>
+                        <h2>Settling global transactions at the speed of thought.</h2>
+                        <p>Every MAD processed through QOON is encrypted and tracked via our zero-latency financial engine — fully auditable in real-time.</p>
+                        <a href="walletCharts.php" class="banner-cta">
+                            <i class="fas fa-chart-bar"></i> Deep Audit Records
                         </a>
                     </div>
+
+                    <!-- Capital Controls -->
+                    <div class="action-panel">
+                        <div class="action-panel-head">Capital Controls</div>
+                        <div class="action-list">
+                            <a href="ControlOdersPerc.php" class="action-item">
+                                <div class="action-item-left">
+                                    <div class="action-ico" style="color:#7C3AED;"><i class="fas fa-percentage"></i></div>
+                                    <span>Fee Management</span>
+                                </div>
+                                <i class="fas fa-chevron-right arrow"></i>
+                            </a>
+                            <a href="walletErad.php" class="action-item">
+                                <div class="action-item-left">
+                                    <div class="action-ico" style="color:#059669;"><i class="fas fa-file-invoice-dollar"></i></div>
+                                    <span>Income Stream Logs</span>
+                                </div>
+                                <i class="fas fa-chevron-right arrow"></i>
+                            </a>
+                            <a href="walletCharts.php" class="action-item">
+                                <div class="action-item-left">
+                                    <div class="action-ico" style="color:#2563EB;"><i class="fas fa-chart-pie"></i></div>
+                                    <span>Ledger Analytics</span>
+                                </div>
+                                <i class="fas fa-chevron-right arrow"></i>
+                            </a>
+                            <a href="walletPayToUser.php" class="action-item">
+                                <div class="action-item-left">
+                                    <div class="action-ico" style="color:#D97706;"><i class="fas fa-hand-holding-usd"></i></div>
+                                    <span>User Payouts</span>
+                                </div>
+                                <i class="fas fa-chevron-right arrow"></i>
+                            </a>
+                            <a href="walletDriverStopMoney.php" class="action-item">
+                                <div class="action-item-left">
+                                    <div class="action-ico" style="color:#DC2626;"><i class="fas fa-motorcycle"></i></div>
+                                    <span>Driver Settlements</span>
+                                </div>
+                                <i class="fas fa-chevron-right arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
-
             </div>
-
         </main>
     </div>
 </body>

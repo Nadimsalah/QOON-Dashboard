@@ -14,10 +14,10 @@ $DeliveryZoneIDs = $_POST["DeliveryZoneID"];
 
   $photo1name="w-".rand();
 
-  $path = "db/db/photo/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
  
-  $actualpath = "https://jibler.app/$path";
+  $actualpath = "https://qoon.app/$path";
  
   $path = "photo/$photo1name.png";
  
@@ -64,9 +64,9 @@ if($photofound == "yes"){
    if($photofound == "yes"){
    if (move_uploaded_file($_FILES["Photo"]["tmp_name"], $path)) {
         echo "The file ". basename( $_FILES["Photo"]["name"]). " has been uploaded.";
-		//header("location: https://jibler.ma/db/db/apps.php"); 
+		//header("location: apps.php"); 
 		
-		$url = 'https://jibler.app/db/db/apps.php';
+		$url = 'apps.php';
       echo '<script>alert(" Done ")</script>';
       echo '<script type="text/javascript">';
       echo 'window.location.href="'.$url.'";';
@@ -83,7 +83,7 @@ if($photofound == "yes"){
     
     
     }else{
-        		$url = 'https://jibler.app/db/db/apps.php';
+        		$url = 'apps.php';
       echo '<script>alert(" Done ")</script>';
       echo '<script type="text/javascript">';
       echo 'window.location.href="'.$url.'";';
@@ -100,7 +100,7 @@ if($photofound == "yes"){
    {
  //  echo "UserCode used before";
    $key['Result'] = "Error";
-           		$url = 'https://jibler.app/db/db/apps.php';
+           		$url = 'apps.php';
       echo '<script>alert(" Error ")</script>';
       echo '<script type="text/javascript">';
       echo 'window.location.href="'.$url.'";';

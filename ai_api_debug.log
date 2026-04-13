@@ -1,0 +1,6 @@
+--- ERROR 2026-04-12 19:49:35 ---
+HTTP Status: 400
+Curl Error: 
+Payload: 
+Response: Failed to parse the request body as JSON: EOF while parsing a value at line 1 column 0
+

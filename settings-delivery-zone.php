@@ -1,234 +1,366 @@
-<?php require "conn.php"; 
-$AdminID = $_COOKIE["AdminID"] ?? '';
+<?php
+require "conn.php";
+$AdminID   = $_COOKIE["AdminID"]   ?? '';
 $AdminName = $_COOKIE["AdminName"] ?? '';
+
+$resCountries = mysqli_query($con, "SELECT * FROM Countries");
+$countries = [];
+while($row = mysqli_fetch_assoc($resCountries)) {
+    if(!empty($row['FrenshName'])) $countries[] = $row;
+}
+
+$resZones = mysqli_query($con, "SELECT * FROM DeliveryZone JOIN Countries ON DeliveryZone.CountryID = Countries.CountryID");
+$zones = [];
+while($row = mysqli_fetch_assoc($resZones)) { $zones[] = $row; }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delivery Zones | QOON Admin</title>
+    <title>Delivery Zones | QOON</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --bg-app: #F4F7FE;
-            --bg-white: #FFFFFF;
-            --text-dark: #2B3674;
-            --text-gray: #A3AED0;
-            --accent-purple: #4318FF;
-            --accent-purple-light: #F4F7FE;
-            --accent-green: #05CD99;
-            --accent-red: #EE5D50;
-            --border-color: #E2E8F0;
-            --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+            --bg-master:  #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --border:     #E5E7EB;
+            --border-md:  #D1D5DB;
+            --text-strong:#111827;
+            --text-base:  #374151;
+            --text-muted: #6B7280;
+            --green-bg:   #ECFDF5; --green-text:  #059669;
+            --blue-bg:    #EFF6FF; --blue-text:   #2563EB;
+            --red-bg:     #FEF2F2; --red-text:    #DC2626;
+            --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
-        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+        body { background:var(--bg-master); color:var(--text-base); display:flex; height:100vh; overflow:hidden; }
+        .layout-wrapper { display:flex; width:100%; height:100%; }
 
-        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: 16px; box-shadow: var(--shadow-card); flex-shrink: 0;}
-        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
-        .breadcrumb i { color: var(--accent-purple); font-size: 18px; }
+        main.content-area { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+        main.content-area::-webkit-scrollbar { width:6px; }
+        main.content-area::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
 
-        .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
+        .header-bar {
+            position:sticky; top:0; z-index:20;
+            background:rgba(255,255,255,0.9); backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border);
+            padding:20px 40px;
+        }
+        .header-bar h1 { font-size:18px; font-weight:700; color:var(--text-strong); }
+        .header-bar p  { font-size:13px; color:var(--text-muted); font-weight:500; margin-top:3px; }
 
-        .glass-card { background: var(--bg-white); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color); align-self: start; }
-        .card-header { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 25px; display:flex; align-items:center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom:15px; }
+        .page-body {
+            padding:40px; max-width:1200px; margin:0 auto; width:100%;
+            display:grid; grid-template-columns:240px 1fr; gap:24px; align-items:start;
+        }
 
-        .settings-nav { display: flex; flex-direction: column; gap: 10px; }
-        .settings-nav a { display: flex; align-items: center; gap: 15px; padding: 16px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-gray); text-decoration: none; transition: 0.3s; border: 2px solid transparent;}
-        .settings-nav a i { font-size: 18px; width: 24px; text-align: center; }
-        .settings-nav a:hover { background: var(--bg-app); color: var(--accent-purple); }
-        .settings-nav a.active { background: var(--accent-purple); color: #FFF; box-shadow: 0 10px 20px rgba(67,24,255,0.2); pointer-events: none; }
+        /* Left Nav */
+        .settings-nav-card { background:var(--bg-surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .nav-card-head { padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-weight:700; color:var(--text-strong); background:#F9FAFB; display:flex; align-items:center; gap:8px; }
+        .nav-card-head i { color:var(--text-muted); }
+        .nav-list-inner { padding:8px; display:flex; flex-direction:column; gap:2px; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:8px; font-size:14px; font-weight:600; color:var(--text-muted); text-decoration:none; transition:0.15s; }
+        .nav-link i { width:16px; text-align:center; font-size:14px; }
+        .nav-link:hover { background:#F3F4F6; color:var(--text-strong); }
+        .nav-link.active { background:#F3F4F6; color:var(--text-strong); font-weight:700; }
 
-        .premium-table { width: 100%; border-collapse: collapse; }
-        .premium-table th { padding: 15px; text-align: left; font-size: 12px; font-weight: 800; color: var(--text-gray); text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-        .premium-table td { padding: 15px; font-size: 14px; font-weight: 600; color: var(--text-dark); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        .premium-table tr:hover td { background: var(--bg-app); }
+        /* Right column */
+        .right-col { display:flex; flex-direction:column; gap:20px; }
 
-        .form-control { width: 100%; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; font-size: 14px; font-weight: 600; color: var(--text-dark); outline:none; transition:0.3s; }
-        .form-control:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 4px var(--accent-purple-light); background: #FFF; }
-        select.form-control { appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232B3674%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 10px auto; padding-right: 40px; }
+        /* Panel */
+        .panel { background:var(--bg-surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .panel-head { padding:18px 24px; border-bottom:1px solid var(--border); background:#F9FAFB; display:flex; justify-content:space-between; align-items:center; }
+        .panel-head h2 { font-size:15px; font-weight:700; color:var(--text-strong); display:flex; align-items:center; gap:8px; }
+        .panel-head h2 i { font-size:13px; color:var(--text-muted); }
+        .panel-body { padding:24px; }
 
-        .btn-submit { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; padding: 14px; background: var(--text-dark); color: #FFF; font-weight: 800; font-size: 14px; border-radius: 12px; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(43, 54, 116, 0.2); }
-        .btn-submit:hover { background: var(--accent-purple); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(67, 24, 255, 0.3); }
+        /* Form grid */
+        .form-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; align-items:end; }
+        .inp-group { display:flex; flex-direction:column; gap:6px; }
+        .inp-group label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+        .inp-field { padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-weight:500; color:var(--text-strong); background:var(--bg-surface); outline:none; transition:0.2s; box-shadow:var(--shadow-sm); width:100%; }
+        .inp-field:focus { border-color:var(--border-md); box-shadow:0 0 0 3px rgba(17,24,39,0.06); }
+        select.inp-field { cursor:pointer; }
 
-        .action-icon { display:inline-flex; width:32px; height:32px; align-items:center; justify-content:center; border-radius:8px; cursor:pointer; transition:0.3s; margin:0 3px; font-size:14px; color:#FFF; text-decoration:none; }
-        .action-edit { background: var(--accent-purple); box-shadow: 0 4px 10px rgba(67,24,255,0.2); }
-        .action-del { background: var(--accent-red); box-shadow: 0 4px 10px rgba(238,93,80,0.2); }
-        .action-edit:hover, .action-del:hover { transform: translateY(-2px); color:#FFF; opacity:0.9; }
+        .divider { border:0; border-top:1px solid var(--border); margin:20px 0; }
 
-        input[type="file"]::file-selector-button { border: none; background: var(--bg-app); border-radius: 8px; padding: 6px 12px; color: var(--text-dark); font-weight: 700; cursor: pointer; margin-right: 10px; }
+        /* Excel import row */
+        .import-row {
+            display:flex; align-items:center; gap:16px;
+            padding:16px; border-radius:10px;
+            background:#F9FAFB; border:1px solid var(--border);
+        }
+        .import-row .import-label { font-size:13px; font-weight:600; color:var(--text-strong); display:flex; align-items:center; gap:8px; white-space:nowrap; }
+        .import-row .import-label i { color:var(--green-text); }
+        input[type="file"] { font-size:13px; font-weight:500; color:var(--text-muted); flex:1; }
+        input[type="file"]::file-selector-button {
+            border:1px solid var(--border); background:var(--bg-surface); border-radius:6px;
+            padding:6px 12px; color:var(--text-strong); font-weight:600; font-size:12px; cursor:pointer; margin-right:10px;
+        }
 
-        /* SIDEBAR SUPPORT */
-        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
-        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
-        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .nav-item i, .nav-item img { width: 22px; text-align: center; }
-        .nav-item:hover, .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
-        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
+        /* Buttons */
+        .btn-primary { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:8px; background:var(--text-strong); color:#fff; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm); white-space:nowrap; }
+        .btn-primary:hover { background:#1F2937; box-shadow:var(--shadow-md); }
+        .btn-green { background:var(--green-text); color:#fff; display:inline-flex; align-items:center; gap:8px; padding:9px 16px; border-radius:8px; font-size:13px; font-weight:600; border:none; cursor:pointer; transition:0.2s; }
+        .btn-green:hover { opacity:0.85; }
+
+        /* Zones Table */
+        table { width:100%; border-collapse:collapse; }
+        th { background:#F9FAFB; padding:14px 20px; text-align:left; font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+        td { padding:16px 20px; border-bottom:1px solid var(--border); font-size:14px; background:#FFFFFF; vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:#F9FAFB; }
+
+        .zone-photo { width:56px; height:42px; border-radius:7px; object-fit:cover; background:#F3F4F6; border:1px solid var(--border); display:block; }
+        .photo-cell { display:flex; align-items:center; gap:12px; }
+        .photo-update-form { display:flex; flex-direction:column; gap:4px; }
+        .photo-update-form input[type="file"] { font-size:10px; width:90px; }
+        .photo-update-btn { font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; border:none; background:var(--text-strong); color:#fff; cursor:pointer; }
+
+        .city-name { font-size:14px; font-weight:700; color:var(--text-strong); }
+        .city-country { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; }
+
+        .coords-pill {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:5px 10px; border-radius:6px;
+            background:#F3F4F6; border:1px solid var(--border);
+            font-family:ui-monospace,monospace; font-size:12px; font-weight:600; color:var(--text-muted);
+        }
+        .radius-val { font-size:14px; font-weight:700; color:var(--green-text); }
+
+        .status-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; }
+        .st-active  { background:var(--blue-bg);  color:var(--blue-text); }
+        .st-pending { background:var(--red-bg);   color:var(--red-text); }
+
+        .btn-icon { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:7px; font-size:13px; text-decoration:none; transition:0.15s; border:1px solid var(--border); margin-left:4px; }
+        .btn-icon-draw { background:var(--bg-surface); color:var(--blue-text); border-color:var(--border); }
+        .btn-icon-draw:hover { background:var(--blue-bg); border-color:#BFDBFE; }
+        .btn-icon-del  { background:var(--bg-surface); color:var(--red-text);  border-color:var(--border); }
+        .btn-icon-del:hover  { background:var(--red-bg);  border-color:#FECACA; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .layout-wrapper { flex-direction: column; height: auto; overflow: visible; }
+            .sb-container { display: none !important; }
+            main.content-area { overflow-y: visible; }
+
+            .header-bar { padding: 14px 16px; position: static; }
+            .header-bar h1 { font-size: 18px; }
+
+            .page-body {
+                padding: 12px 12px 80px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            /* Settings nav → horizontal scrollable pill bar */
+            .settings-nav-card { border-radius: 12px; }
+            .nav-card-head { display: none; }
+            .nav-list-inner {
+                flex-direction: row;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+                padding: 6px;
+                gap: 4px;
+                scrollbar-width: none;
+            }
+            .nav-list-inner::-webkit-scrollbar { display: none; }
+            .nav-link {
+                flex: 0 0 auto;
+                scroll-snap-align: start;
+                white-space: nowrap;
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+
+            /* Panel */
+            .panel-head { flex-wrap: wrap; gap: 8px; padding: 14px 16px; }
+            .panel-body { padding: 16px; }
+
+            /* Import row: stack label + file + button vertically */
+            .import-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            input[type="file"] { width: 100%; }
+
+            /* Table horizontal scroll */
+            table { min-width: 560px; }
+        }
+        @media (max-width: 600px) {
+            .nav-link { font-size: 12px; padding: 9px 12px; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-envelope">
+    <div class="layout-wrapper">
         <?php include 'sidebar.php'; ?>
 
-        <main class="main-panel">
-            <header class="header">
-                <div class="breadcrumb">
-                    <i class="fas fa-cog"></i> 
-                    <span>Configuration & Defaults / Geographic Delivery Zones</span>
+        <main class="content-area">
+            <header class="header-bar">
+                <div>
+                    <h1>Delivery Zones</h1>
+                    <p>Configure geographic operating zones and delivery boundaries.</p>
                 </div>
             </header>
 
-            <div class="layout-grid">
-                
-                <!-- Left: Settings Menu -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div><i class="fas fa-sliders-h" style="color:var(--text-gray); margin-right:8px;"></i> System Settings</div>
+            <div class="page-body">
+
+                <!-- Left: Settings Nav -->
+                <div class="settings-nav-card">
+                    <div class="nav-card-head"><i class="fas fa-sliders-h"></i> System Settings</div>
+                    <div class="nav-list-inner">
+                        <a href="settings-profile.php" class="nav-link">
+                            <i class="fas fa-user-shield"></i> Master Profile
+                        </a>
+                        <?php if($AdminID == 1): ?>
+                        <a href="settings-staff-accounts.php" class="nav-link">
+                            <i class="fas fa-users-cog"></i> Staff Accounts
+                        </a>
+                        <a href="settings-delivery-zone.php" class="nav-link active">
+                            <i class="fas fa-map-marked-alt"></i> Delivery Zones
+                        </a>
+                        <a href="bakat.php" class="nav-link">
+                            <i class="fas fa-box-open"></i> App Packages
+                        </a>
+                        <?php endif; ?>
                     </div>
-                    
-                    <?php if($AdminID == 1){ ?>
-                    <div class="settings-nav">
-                        <a href="settings-profile.php"><i class="fas fa-user-shield"></i> Master Profile</a>
-                        <a href="settings-staff-accounts.php"><i class="fas fa-users-cog"></i> Staff Accounts</a>
-                        <a href="settings-delivery-zone.php" class="active"><i class="fas fa-map-marked-alt"></i> Delivery Zones</a>
-                        <a href="bakat.php"><i class="fas fa-box-open"></i> App Packages</a>
-                    </div>
-                    <?php } else { ?>
-                    <div class="settings-nav">
-                        <a href="settings-profile.php"><i class="fas fa-user-shield"></i> Agent Profile</a>
-                    </div>
-                    <?php } ?>
                 </div>
 
-                <!-- Right: Zones Manager -->
-                <div style="display:flex; flex-direction:column; gap:30px;">
-                    
-                    <div class="glass-card">
-                        <div class="card-header">
-                            <div><i class="fas fa-plus-circle" style="color:var(--accent-purple); margin-right:8px;"></i> Register New Zone</div>
+                <!-- Right Column -->
+                <div class="right-col">
+
+                    <!-- Register New Zone -->
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-plus-circle"></i> Register New Zone</h2>
                         </div>
+                        <div class="panel-body">
+                            <form action="addCity.php" method="POST">
+                                <div class="form-grid">
+                                    <div class="inp-group">
+                                        <label>Country</label>
+                                        <select name="CountryID" class="inp-field">
+                                            <?php foreach($countries as $c): ?>
+                                                <option value="<?= $c['CountryID'] ?>"><?= htmlspecialchars($c['FrenshName']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="inp-group">
+                                        <label>City Name</label>
+                                        <input type="text" name="CityName" class="inp-field" placeholder="e.g. Casablanca" required>
+                                    </div>
+                                    <div class="inp-group">
+                                        <label>Center Coordinates</label>
+                                        <input type="text" name="Coordinates" class="inp-field" placeholder="Lat, Long" required>
+                                    </div>
+                                    <div class="inp-group">
+                                        <label>Radius (KM)</label>
+                                        <input type="number" name="Deliveryzone" class="inp-field" placeholder="e.g. 25">
+                                    </div>
+                                    <div class="inp-group">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn-primary"><i class="fas fa-map-marker-alt"></i> Create Zone</button>
+                                    </div>
+                                </div>
+                            </form>
 
-                        <form action="addCity.php" method="POST" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px; align-items:end;">
-                            <div>
-                                <label style="font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:8px; display:block;">Country</label>
-                                <select name="CountryID" class="form-control">
-                                    <?php  
-                                        $res = mysqli_query($con,"SELECT * FROM Countries");
-                                        while($row = mysqli_fetch_assoc($res)){ if($row["FrenshName"] !=""){ 
-                                    ?>
-                                        <option value="<?php echo $row["CountryID"] ?>"><?php echo $row["FrenshName"] ?></option>
-                                    <?php } } ?>			
-                                </select>
-                            </div>
-                            <div>
-                                <label style="font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:8px; display:block;">City Name</label>
-                                <input type="text" placeholder="e.g. Casablanca" class="form-control" name="CityName" required>   
-                            </div>
-                            <div>
-                                <label style="font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:8px; display:block;">Center Coordinates</label>
-                                <input type="text" placeholder="Lat, Long" class="form-control" name="Coordinates" required>   
-                            </div>
-                            <div>
-                                <label style="font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:8px; display:block;">Radius (Km)</label>
-                                <input type="number" placeholder="Delivery zone" class="form-control" name="Deliveryzone">   
-                            </div>
-                            <div>
-                                <button type="submit" class="btn-submit"><i class="fas fa-map-marker-alt"></i> Create Zone</button>
-                            </div>
-                        </form>
+                            <hr class="divider">
 
-                        <hr style="border:0; border-top:1px solid var(--border-color); margin:25px 0;">
-
-                        <form action="uploadExel.php" method="post" enctype="multipart/form-data" style="display:flex; align-items:center; gap:15px; background:var(--bg-app); padding:15px; border-radius:12px;">
-                            <div style="font-size:14px; font-weight:700; color:var(--text-dark);"><i class="fas fa-file-excel" style="color:var(--accent-green);"></i> Batch Import via Excel:</div>
-                            <input type="file" name="file" required style="flex:1;">
-                            <button type="submit" name="submit_file" class="btn-submit" style="width:auto; padding:8px 20px; background:var(--accent-green);"><i class="fas fa-upload"></i> Process</button>
-                        </form>
-
+                            <!-- Excel Import -->
+                            <form action="uploadExel.php" method="POST" enctype="multipart/form-data">
+                                <div class="import-row">
+                                    <div class="import-label"><i class="fas fa-file-excel"></i> Batch Import via Excel</div>
+                                    <input type="file" name="file" required>
+                                    <button type="submit" name="submit_file" class="btn-green"><i class="fas fa-upload"></i> Process</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
-                    <div class="glass-card">
-                        <div class="card-header">
-                            <div><i class="fas fa-map" style="color:var(--accent-purple); margin-right:8px;"></i> Active Operating Geofences</div>
+                    <!-- Active Zones Table -->
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-map"></i> Active Operating Geofences</h2>
+                            <span style="font-size:13px; font-weight:600; color:var(--text-muted);"><?= count($zones) ?> zone<?= count($zones) != 1 ? 's' : '' ?></span>
                         </div>
-
                         <div style="overflow-x:auto;">
-                            <table class="premium-table">
+                            <table>
                                 <thead>
                                     <tr>
-                                        <th>Visual Identifier</th>
+                                        <th>Visual</th>
                                         <th>Location</th>
-                                        <th>Core GPS Anchor</th>
-                                        <th>Coverage</th>
-                                        <th>Geofence Status</th>
-                                        <th class="text-center">Actions</th>
+                                        <th>GPS Anchor</th>
+                                        <th>Radius</th>
+                                        <th>Border Status</th>
+                                        <th style="text-align:right; padding-right:20px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php
-                                    $res = mysqli_query($con,"SELECT * FROM DeliveryZone JOIN Countries ON DeliveryZone.CountryID = Countries.CountryID");
-                                    while($row = mysqli_fetch_assoc($res)){ 
+                                    <?php foreach($zones as $row):
+                                        $zoneID  = $row['DeliveryZoneID'];
+                                        $res2    = mysqli_query($con, "SELECT 1 FROM CityBoders WHERE DeliveryZoneID = $zoneID LIMIT 1");
+                                        $hasVec  = mysqli_num_rows($res2) > 0;
+                                        $stClass = $hasVec ? 'st-active'  : 'st-pending';
+                                        $stLabel = $hasVec ? 'Active Vector' : 'Pending Upload';
                                     ?>
                                     <tr>
-                                        <td style="min-width:180px;">
-                                            <div style="display:flex; align-items:center; gap:15px;">
-                                                <img src="<?php echo $row['Photo']; ?>" style="width:60px; height:45px; border-radius:8px; object-fit:cover; box-shadow:0 4px 10px rgba(0,0,0,0.05); background:#E2E8F0;">
-                                                <form method="POST" action="UpdateCityPhoto.php" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:5px;">
-                                                    <input type="file" name="Photo" style="font-size:10px; width:80px;" required>
-                                                    <input type="hidden" name="id" value="<?php echo $row['DeliveryZoneID']?>">
-                                                    <button type="submit" style="background:var(--accent-purple); color:#FFF; font-size:10px; font-weight:700; border:none; border-radius:4px; padding:4px; cursor:pointer;">Update</button>
+                                        <!-- Photo + Upload -->
+                                        <td>
+                                            <div class="photo-cell">
+                                                <img src="<?= htmlspecialchars($row['Photo'] ?? '') ?>" class="zone-photo" onerror="this.style.display='none'">
+                                                <form method="POST" action="UpdateCityPhoto.php" enctype="multipart/form-data" class="photo-update-form">
+                                                    <input type="file" name="Photo" required>
+                                                    <input type="hidden" name="id" value="<?= $zoneID ?>">
+                                                    <button type="submit" class="photo-update-btn">Update</button>
                                                 </form>
                                             </div>
                                         </td>
+                                        <!-- Location -->
                                         <td>
-                                            <div style="font-size:11px; font-weight:700; color:var(--text-gray); text-transform:uppercase;"><?php echo $row["FrenshName"]; ?></div>
-                                            <div style="font-size:15px; font-weight:800; color:var(--text-dark);"><?php echo $row["CityName"]; ?></div>
+                                            <div class="city-country"><?= htmlspecialchars($row['FrenshName']) ?></div>
+                                            <div class="city-name"><?= htmlspecialchars($row['CityName']) ?></div>
                                         </td>
+                                        <!-- GPS -->
                                         <td>
-                                            <span style="background:var(--bg-app); padding:6px 12px; border-radius:8px; font-family:monospace; font-weight:700; font-size:12px; color:var(--accent-purple);">
-                                                <i class="fas fa-location-arrow" style="margin-right:5px; color:var(--text-gray);"></i>
-                                                <?php echo $row["CityLat"] . ', ' . $row["CityLongt"]; ?>
+                                            <span class="coords-pill">
+                                                <i class="fas fa-location-arrow" style="font-size:10px;"></i>
+                                                <?= htmlspecialchars($row['CityLat']) ?>, <?= htmlspecialchars($row['CityLongt']) ?>
                                             </span>
                                         </td>
-                                        <td><span style="font-weight:800; color:var(--accent-green);"><?php echo $row["Deliveryzone"]; ?> KMs</span></td>
-                                        <td> 
-                                            <?php
-                                            $id = $row["DeliveryZoneID"];
-                                            $borders = 'Pending Upload';
-                                            $color = 'var(--accent-red)';
-                                            $bg = 'rgba(238,93,80,0.1)';
-                                            $res2 = mysqli_query($con,"SELECT * FROM CityBoders WHERE DeliveryZoneID = $id");                           
-                                            while($row2 = mysqli_fetch_assoc($res2)){ 
-                                                $borders = 'Active Vector'; 
-                                                $color = 'var(--accent-blue)'; 
-                                                $bg = 'rgba(57,101,255,0.1)'; 
-                                                break; 
-                                            }
-                                            ?>
-                                            <span style="background:<?php echo $bg; ?>; color:<?php echo $color; ?>; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800; text-transform:uppercase;">
-                                                <?php echo $borders; ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">  
-                                            <a href="DrowBorders.php?Lat=<?php echo $row["CityLat"] ?>&Long=<?php echo $row["CityLongt"]; ?>&d=<?php echo $row["DeliveryZoneID"] ?>" class="action-icon action-edit" title="Draw Vectors"><i class="fas fa-draw-polygon"></i></a>
-                                            <a href="deleteCityAPI.php?id=<?php echo $row["DeliveryZoneID"] ?>" class="action-icon action-del" title="Delete Zone"><i class="fas fa-trash"></i></a>
+                                        <!-- Radius -->
+                                        <td><span class="radius-val"><?= htmlspecialchars($row['Deliveryzone']) ?> KM</span></td>
+                                        <!-- Border Status -->
+                                        <td><span class="status-badge <?= $stClass ?>"><?= $stLabel ?></span></td>
+                                        <!-- Actions -->
+                                        <td style="text-align:right; padding-right:20px;">
+                                            <a href="DrowBorders.php?Lat=<?= $row['CityLat'] ?>&Long=<?= $row['CityLongt'] ?>&d=<?= $zoneID ?>"
+                                               class="btn-icon btn-icon-draw" title="Draw Boundary Vectors">
+                                                <i class="fas fa-draw-polygon"></i>
+                                            </a>
+                                            <a href="deleteCityAPI.php?id=<?= $zoneID ?>"
+                                               onclick="return confirm('Delete zone <?= htmlspecialchars($row['CityName']) ?>?')"
+                                               class="btn-icon btn-icon-del" title="Delete Zone">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
                                         </td>
                                     </tr>
-                                    <?php } ?> 
+                                    <?php endforeach; ?>
+                                    <?php if(empty($zones)): ?>
+                                    <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted); font-weight:500;">No delivery zones configured yet.</td></tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </main>
     </div>

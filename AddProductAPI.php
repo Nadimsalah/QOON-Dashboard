@@ -18,12 +18,10 @@ $ShopID = $_POST["ShopID"];
 
   $photo1name="w-".rand();
 
-  $path = "dash/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
  
   $actualpath = "https://qoon.app/$path";
- 
-  $path = "photo/$photo1name.png";
  
  
  $t = explode(",",$ShopLatPosition);

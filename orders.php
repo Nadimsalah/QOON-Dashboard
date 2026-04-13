@@ -1,31 +1,21 @@
 <?php
 require "conn.php";
 
-// Analytics Metrics (Fast SQL aggregation, replacing 1000+ lines of manual loop)
 $deliveredCount = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Orders WHERE OrderState IN ('Done', 'Rated')"))['c'] ?? 0;
 $waitingCount   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Orders WHERE OrderState='waiting'"))['c'] ?? 0;
 $doingCount     = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Orders WHERE OrderState='Doing'"))['c'] ?? 0;
 $cancelledCount = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Orders WHERE OrderState='Cancelled'"))['c'] ?? 0;
 $totalCount     = $deliveredCount + $waitingCount + $doingCount + $cancelledCount;
 
-// Filter Parameters
 $page = isset($_GET['Page']) ? (int)$_GET['Page'] : 0;
-if($page < 0) $page = 0;
-$limit = 20;
-$offset = $page * $limit;
+if($page < 0) $page = 0; $limit = 20; $offset = $page * $limit;
 
 $where = "1=1";
 $state = isset($_GET['state']) ? mysqli_real_escape_string($con, $_GET['state']) : '';
-if($state && $state !== 'All') {
-    $where .= " AND Orders.OrderState='$state'";
-}
-
+if($state && $state !== 'All') { $where .= " AND Orders.OrderState='$state'"; }
 $orderid = isset($_GET['orderid']) ? (int)$_GET['orderid'] : 0;
-if($orderid > 0) {
-    $where .= " AND Orders.OrderID=$orderid";
-}
+if($orderid > 0) { $where .= " AND Orders.OrderID=$orderid"; }
 
-// Global Order Query with extensive JOINs
 $sql = "SELECT Orders.OrderID, Orders.CreatedAtOrders, Orders.OrderDetails, Orders.OrderPrice, Orders.OrderState, 
                Users.name as BuyerName, Drivers.FName as DriverName, 
                Orders.DestinationName as ShopName, Orders.DestnationPhoto, Users.UserPhoto
@@ -34,213 +24,576 @@ $sql = "SELECT Orders.OrderID, Orders.CreatedAtOrders, Orders.OrderDetails, Orde
         LEFT JOIN Drivers ON Orders.DelvryId = Drivers.DriverID 
         WHERE $where 
         ORDER BY Orders.OrderID DESC LIMIT $limit OFFSET $offset";
-
 $resTx = mysqli_query($con, $sql);
 $orders = [];
-if($resTx) {
-    while($row = mysqli_fetch_assoc($resTx)) {
-        $orders[] = $row;
-    }
-}
+if($resTx) { while($row = mysqli_fetch_assoc($resTx)) { $orders[] = $row; } }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Orders Log | QOON</title>
+    <title>Ledger Dashboard</title>
+    <!-- Premium Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
-            --bg-app: #F5F6FA; --bg-white: #FFFFFF;
-            --text-dark: #2A3042; --text-gray: #A6A9B6;
-            --accent-purple: #623CEA; --accent-purple-light: #F0EDFD;
-            --accent-green: #10B981; --accent-blue: #007AFF; --accent-orange: #F59E0B; --accent-red: #EF4444;
-            --border-color: #F0F2F6;
-            --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.03);
-            --shadow-float: 0 12px 35px rgba(0, 0, 0, 0.05);
+            --bg-master: #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --border-subtle: #E5E7EB;
+            --border-focus: #D1D5DB;
+            
+            --text-strong: #111827;
+            --text-base: #374151;
+            --text-muted: #6B7280;
+            --text-on-accent: #FFFFFF;
+            
+            --accent-primary: #111827;
+            --accent-hover: #1F2937;
+            
+            --status-green-bg: #ECFDF5; --status-green-text: #059669; --status-green-dot: #10B981;
+            --status-blue-bg: #EFF6FF; --status-blue-text: #2563EB; --status-blue-dot: #3B82F6;
+            --status-orange-bg: #FFFBEB; --status-orange-text: #D97706; --status-orange-dot: #F59E0B;
+            --status-red-bg: #FEF2F2; --status-red-text: #DC2626; --status-red-dot: #EF4444;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
-        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
 
-        /* Sidebar CSS */
-        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
-        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
-        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
-        .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
-        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
-
-        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-
-        /* KPI Cards Grid */
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
-        .kpi-card { background: var(--bg-white); border-radius: 20px; padding: 25px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-card); transition: 0.3s; }
-        .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
-        .kpi-data h3 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin-bottom: 3px; }
-        .kpi-data p { font-size: 13px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; }
-        .kpi-icon { width: 55px; height: 55px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
         
-        .c-green { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .c-blue { background: rgba(0, 122, 255, 0.1); color: var(--accent-blue); }
-        .c-orange { background: rgba(245, 158, 11, 0.1); color: var(--accent-orange); }
-        .c-red { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+        body {
+            background-color: var(--bg-master);
+            color: var(--text-base);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        /* Tools Bar */
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .search-box { background: var(--bg-white); border-radius: 12px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-card); width: 350px; }
-        .search-box input { border: none; outline: none; width: 100%; font-size: 14px; font-weight: 600; color: var(--text-dark); }
+        .layout-wrapper { display: flex; width: 100%; height: 100%; }
         
-        .filter-tags { display: flex; gap: 10px; }
-        .f-tag { padding: 10px 18px; border-radius: 10px; background: var(--bg-white); color: var(--text-dark); text-decoration: none; font-size: 13px; font-weight: 700; border: 1px solid var(--border-color); transition: 0.2s; }
-        .f-tag:hover, .f-tag.active { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
+        main.content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+        }
 
-        /* Data Table */
-        .table-container { background: var(--bg-white); border-radius: 20px; padding: 30px; box-shadow: var(--shadow-card); overflow: hidden; }
-        
-        table { width: 100%; border-collapse: collapse; }
-        th { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; padding: 15px; border-bottom: 2px solid var(--border-color); text-align: left; }
-        td { font-size: 14px; font-weight: 600; color: var(--text-dark); padding: 18px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        
-        .tx-id { font-weight: 800; color: var(--accent-blue); background: rgba(0, 122, 255, 0.1); padding: 5px 12px; border-radius: 8px; font-size: 12px; }
-        .tx-time { color: var(--text-gray); font-size: 12px; font-weight: 600; margin-top: 5px; }
-        .tx-amt { font-size: 15px; font-weight: 800; color: var(--accent-green); }
-        
-        /* Status Badges */
-        .badge { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; }
-        .b-done { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .b-wait { background: rgba(245, 158, 11, 0.1); color: var(--accent-orange); }
-        .b-doing { background: rgba(0, 122, 255, 0.1); color: var(--accent-blue); }
-        .b-cancel { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+        .header-bar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 24px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        /* Pagination */
-        .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 30px; font-size: 13px; font-weight: 600; color: var(--text-gray); }
-        .page-ctrls { display: flex; gap: 8px; }
-        .page-btn { padding: 8px 16px; border-radius: 10px; background: var(--bg-app); color: var(--text-dark); text-decoration: none; transition: 0.2s; font-weight: 700; border: 1px solid var(--border-color); }
-        .page-btn:hover { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
+        .page-title {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .page-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: -0.5px;
+        }
+        .page-title p {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .search-container {
+            position: relative;
+        }
+        .search-container input {
+            background: #F9FAFB;
+            border: 1px solid var(--border-subtle);
+            padding: 10px 16px 10px 42px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-strong);
+            width: 280px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .search-container input:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.05);
+            width: 320px;
+            background: var(--bg-surface);
+        }
+        .search-container i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .page-body {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Nav Pills */
+        .filter-nav {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: #E5E7EB;
+            border-radius: 10px;
+            align-self: flex-start;
+        }
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .filter-pill:hover {
+            color: var(--text-strong);
+        }
+        .filter-pill.active {
+            background: var(--bg-surface);
+            color: var(--text-strong);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Minimal Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        .metric-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .metric-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .metric-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .metric-val {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-strong);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+        .mc-green { background: var(--status-green-bg); color: var(--status-green-text); }
+        .mc-blue { background: var(--status-blue-bg); color: var(--status-blue-text); }
+        .mc-orange { background: var(--status-orange-bg); color: var(--status-orange-text); }
+        .mc-black { background: #F3F4F6; color: var(--text-strong); }
+
+        /* Beautiful Table Engine */
+        .table-container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .table-toolbar {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FFFFFF;
+        }
+        .table-toolbar h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-strong);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #F9FAFB;
+            padding: 16px 24px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            vertical-align: middle;
+            background: #FFFFFF;
+        }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Subtle Row Hover */
+        tr:hover td { background: #F9FAFB; }
+
+        /* Cell Styling */
+        .td-id {
+            font-weight: 600;
+            color: var(--text-strong);
+            font-size: 14px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .td-time {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        .status-badge i { font-size: 8px; }
+        .st-done { background: var(--status-green-bg); color: var(--status-green-text); }
+        .st-transit { background: var(--status-blue-bg); color: var(--status-blue-text); }
+        .st-wait { background: var(--status-orange-bg); color: var(--status-orange-text); }
+        .st-cancel { background: var(--status-red-bg); color: var(--status-red-text); }
+
+        .entity-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .entity-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .entity-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 12px;
+            border: 1px solid var(--border-subtle);
+        }
+        .entity-avatar.round { border-radius: 50%; }
+        
+        .entity-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-strong);
+        }
+
+        .td-amount {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-strong);
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .td-amount span {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .btn-inspect {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 6px;
+            color: var(--text-strong);
+            background: #FFFFFF;
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-sm);
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .btn-inspect:hover {
+            background: #F9FAFB;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Pagination Clean */
+        .page-footer {
+            padding: 16px 24px;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-info {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .page-controls {
+            display: flex;
+            gap: 8px;
+        }
+        .page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: #FFFFFF;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-strong);
+            text-decoration: none;
+            transition: 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+        .page-btn:hover { background: #F9FAFB; }
         .page-btn.disabled { opacity: 0.5; pointer-events: none; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .layout-wrapper { flex-direction: column; height: auto; overflow: visible; }
+            .sb-container { display: none !important; }
+            main.content-area { overflow-y: visible; }
+
+            .header-bar { flex-wrap: wrap; gap: 12px; padding: 14px 16px; }
+            .page-title h1 { font-size: 20px; }
+            .search-container input { width: 100%; }
+            .search-container input:focus { width: 100%; }
+            .search-container { width: 100%; }
+
+            .page-body { padding: 16px 16px 80px; }
+
+            /* Status filter pills: 2-col grid */
+            .status-pills { flex-wrap: wrap; gap: 8px; }
+
+            /* Table: scrollable */
+            .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 14px; font-size: 13px; }
+
+            .pagination-bar { flex-direction: column; gap: 10px; align-items: flex-start; padding: 14px 16px; }
+        }
+        @media (max-width: 600px) {
+            /* Keep Order ID, Status, Amount — hide Date, Shop, Driver cols */
+            table thead tr th:nth-child(3),
+            table thead tr th:nth-child(4),
+            table tbody tr td:nth-child(3),
+            table tbody tr td:nth-child(4) { display: none; }
+            td { font-size: 12px; padding: 10px 10px; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-envelope">
+    <div class="layout-wrapper">
         <?php include 'sidebar.php'; ?>
 
-        <main class="main-panel">
+        <main class="content-area">
             
-            <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-data"><h3><?= number_format($deliveredCount) ?></h3><p>Delivered</p></div>
-                    <div class="kpi-icon c-green"><i class="fas fa-box-open"></i></div>
+            <header class="header-bar">
+                <div class="page-title">
+                    <h1>Transaction Ledger</h1>
+                    <p>Overview of the entire order ecosystem.</p>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-data"><h3><?= number_format($doingCount) ?></h3><p>In Transit</p></div>
-                    <div class="kpi-icon c-blue"><i class="fas fa-motorcycle"></i></div>
+                <div class="search-container">
+                    <form action="orders.php" method="GET">
+                        <i class="fas fa-search"></i>
+                        <input type="number" name="orderid" placeholder="Locate by Order #..." value="<?= $orderid > 0 ? $orderid : '' ?>">
+                    </form>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-data"><h3><?= number_format($waitingCount) ?></h3><p>Pending Bids</p></div>
-                    <div class="kpi-icon c-orange"><i class="fas fa-clock"></i></div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-data"><h3><?= number_format($cancelledCount) ?></h3><p>Cancelled</p></div>
-                    <div class="kpi-icon c-red"><i class="fas fa-times-circle"></i></div>
-                </div>
-            </div>
+            </header>
 
-            <div class="toolbar">
-                <form class="search-box" method="GET">
-                    <i class="fas fa-search" style="color:var(--text-gray);"></i>
-                    <input type="number" name="orderid" placeholder="Search by Order ID..." value="<?= $orderid > 0 ? $orderid : '' ?>">
-                </form>
+            <div class="page-body">
+                
+                <!-- Filters -->
+                <nav class="filter-nav">
+                    <?php 
+                        $filters = [
+                            ['label'=>'Everything', 'val'=>'All'],
+                            ['label'=>'Pending Queue', 'val'=>'waiting'],
+                            ['label'=>'In Transit', 'val'=>'Doing'],
+                            ['label'=>'Delivered', 'val'=>'Done'],
+                            ['label'=>'Cancelled', 'val'=>'Cancelled']
+                        ];
+                        foreach($filters as $f): 
+                            $isActive = ($state === $f['val']) || ($state=='' && $f['val']=='All') || ($state=='Rated' && $f['val']=='Done');
+                            $class = $isActive ? 'active' : '';
+                    ?>
+                        <a href="?state=<?= $f['val'] ?>" class="filter-pill <?= $class ?>">
+                            <?= $f['label'] ?>
+                        </a>
+                    <?php endforeach; ?>
+                </nav>
 
-                <div class="filter-tags">
-                    <a href="?state=All" class="f-tag <?= $state == '' || $state == 'All' ? 'active' : '' ?>">All Orders</a>
-                    <a href="?state=waiting" class="f-tag <?= $state == 'waiting' ? 'active' : '' ?>">Waiting</a>
-                    <a href="?state=Doing" class="f-tag <?= $state == 'Doing' ? 'active' : '' ?>">Doing</a>
-                    <a href="?state=Done" class="f-tag <?= $state == 'Done' || $state == 'Rated' ? 'active' : '' ?>">Done</a>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Status Matrix</th>
-                            <th>Entities (Store / Buyer / Driver)</th>
-                            <th>Transaction Payload</th>
-                            <th>Value</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (count($orders) === 0): ?>
-                        <tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-gray); font-size:15px; font-weight:700;"><i class="fas fa-folder-open fa-2x" style="margin-bottom:15px; display:block; opacity:0.5;"></i> No matching records found limit.</td></tr>
-                        <?php endif; ?>
-
-                        <?php foreach($orders as $row): 
-                            $amt = (float)$row['OrderPrice'];
-                            if($amt <= 0) $amt = rand(15, 250); 
-                            $safeDetails = htmlspecialchars($row['OrderDetails'], ENT_QUOTES);
-                            
-                            $bName = !empty($row['BuyerName']) ? htmlspecialchars($row['BuyerName']) : "Unknown User";
-                            $dName = !empty($row['DriverName']) ? htmlspecialchars($row['DriverName']) : "Pending Pickup";
-                            $sName = !empty($row['ShopName']) ? htmlspecialchars($row['ShopName']) : "Unregistered Shop";
-
-                            $st = $row['OrderState'];
-                            $displayState = $st;
-                            $badgeClass = 'b-cancel';
-                            
-                            if($st == 'Done' || $st == 'Rated') {
-                                $badgeClass = 'b-done';
-                                $displayState = 'Delivered';
-                            }
-                            if($st == 'waiting') $badgeClass = 'b-wait';
-                            if($st == 'Doing') $badgeClass = 'b-doing';
-                        ?>
-                        <tr>
-                            <td>
-                                <span class="tx-id">#<?= htmlspecialchars($row['OrderID']) ?></span>
-                                <div class="tx-time"><?= htmlspecialchars($row['CreatedAtOrders']) ?></div>
-                            </td>
-                            <td>
-                                <span class="badge <?= $badgeClass ?>"><?= htmlspecialchars(strtoupper($displayState)) ?></span>
-                            </td>
-                            <td>
-                                <div style="font-size:12px; display:flex; flex-direction:column; gap:4px;">
-                                    <span><i class="fas fa-store" style="color:var(--accent-orange); width:16px;"></i> <?= $sName ?></span>
-                                    <span><i class="fas fa-user-circle" style="color:var(--text-gray); width:16px;"></i> <?= $bName ?></span>
-                                    <span><i class="fas fa-motorcycle" style="color:var(--accent-purple); width:16px;"></i> <?= $dName ?></span>
-                                </div>
-                            </td>
-                            <td>
-                                <div style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; color:var(--text-gray);" title="<?= $safeDetails ?>">
-                                    <?= $safeDetails ?>
-                                </div>
-                            </td>
-                            <td><span class="tx-amt"><?= number_format($amt, 2) ?> <small style="font-size:11px; color:#A6A9B6;">MAD</small></span></td>
-                            <td>
-                                <a href="order-detail.php?OrderID=<?= $row['OrderID'] ?>" style="padding:8px 15px; background:var(--accent-purple-light); color:var(--accent-purple); border-radius:10px; font-size:12px; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:0.2s;">
-                                    <i class="fas fa-satellite-dish"></i> Deep Track
-                                </a>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-
-                <div class="pagination">
-                    <span>Active Global Record Pool</span>
-                    <div class="page-ctrls">
-                        <a href="?state=<?= urlencode($state) ?>&orderid=<?= urlencode($orderid) ?>&Page=<?= max(0, $page - 1) ?>" class="page-btn <?= $page <= 0 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Previous</a>
-                        <a href="?state=<?= urlencode($state) ?>&orderid=<?= urlencode($orderid) ?>&Page=<?= $page + 1 ?>" class="page-btn <?= count($orders) < $limit ? 'disabled' : '' ?>">Next <i class="fas fa-chevron-right"></i></a>
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon mc-green"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <div class="metric-val"><?= number_format($deliveredCount) ?></div>
+                            <div class="metric-label">Delivered</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon mc-blue"><i class="fas fa-motorcycle"></i></div>
+                        <div>
+                            <div class="metric-val"><?= number_format($doingCount) ?></div>
+                            <div class="metric-label">In Transit</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon mc-orange"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <div class="metric-val"><?= number_format($waitingCount) ?></div>
+                            <div class="metric-label">Waiting</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon mc-black"><i class="fas fa-times-circle"></i></div>
+                        <div>
+                            <div class="metric-val"><?= number_format($cancelledCount) ?></div>
+                            <div class="metric-label">Cancelled</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
+                <!-- Table -->
+                <div class="table-container">
+                    <div class="table-toolbar">
+                        <h2>Order Log</h2>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ref ID</th>
+                                    <th>Status</th>
+                                    <th>Participants</th>
+                                    <th style="text-align: right;">Amount</th>
+                                    <th style="text-align: right; padding-right:24px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($orders as $row): 
+                                    $st = $row['OrderState']; 
+                                    $displaySt = $st;
+                                    if ($st == 'Rated') $displaySt = 'Delivered';
+
+                                    $statusClass = 'st-transit';
+                                    if($st == 'Done' || $st == 'Rated') $statusClass = 'st-done';
+                                    if($st == 'waiting') $statusClass = 'st-wait';
+                                    if($st == 'Doing') $statusClass = 'st-transit';
+                                    if($st == 'Cancelled') $statusClass = 'st-cancel';
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <div class="td-id">#<?= $row['OrderID'] ?></div>
+                                            <div class="td-time"><?= date('M j, Y - H:i', strtotime($row['CreatedAtOrders'])) ?></div>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge <?= $statusClass ?>">
+                                                <i class="fas fa-circle"></i> <?= $displaySt ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="entity-stack">
+                                                <div class="entity-row">
+                                                    <div class="entity-avatar"><i class="fas fa-store"></i></div>
+                                                    <span class="entity-name"><?= htmlspecialchars($row['ShopName']??'Unknown Vendor') ?></span>
+                                                </div>
+                                                <div class="entity-row">
+                                                    <div class="entity-avatar round"><i class="fas fa-user"></i></div>
+                                                    <span class="entity-name"><?= htmlspecialchars($row['BuyerName']??'Unknown User') ?></span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="td-amount">
+                                            <?= number_format($row['OrderPrice'], 2) ?><span>MAD</span>
+                                        </td>
+                                        <td style="text-align: right; padding-right:24px;">
+                                            <a href="order-detail.php?OrderID=<?= $row['OrderID'] ?>" class="btn-inspect">View</a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="page-footer">
+                        <div class="page-info">
+                            Showing index <?= $offset ?> - <?= $offset+$limit ?>
+                        </div>
+                        <div class="page-controls">
+                            <?php if($page > 0): ?>
+                                <a href="?Page=<?= $page-1 ?>&state=<?= urlencode($state) ?>&orderid=<?= $orderid ?>" class="page-btn">Previous</a>
+                            <?php endif; ?>
+                            <a href="?Page=<?= $page+1 ?>&state=<?= urlencode($state) ?>&orderid=<?= $orderid ?>" class="page-btn">Next Segment</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </main>
     </div>
 </body>

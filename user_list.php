@@ -152,6 +152,30 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
 
         .empty-state { padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; color: var(--text-gray); text-align: center; }
         .empty-state i { font-size: 48px; color: #EBECEF; }
+        /* ----- MOBILE RESPONSIVENESS ----- */
+        @media (max-width: 991px) {
+            .main-panel { padding: 15px; }
+            .header { flex-direction: column; gap: 15px; align-items: stretch; margin-bottom: 25px; }
+            .search { width: 100%; box-sizing: border-box; }
+            .header-actions { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .page-header .action-combo { width: 100%; margin-top: 10px; }
+            .page-header select { width: 100%; }
+            
+            /* Responsive Swipeable Table Instead of Breaking Layout */
+            .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
+            table { width: 800px; /* Force bounds so it smoothly scrolls instead of squishing text */ }
+            .table-footer { flex-direction: column; gap: 20px; text-align: center; border-top: 1px solid var(--border-color); }
+        }
+
+        /* Shimmer Loading */
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        .shimmer-bg {
+            animation: shimmer 2.5s infinite linear;
+            background: linear-gradient(to right, #F8F9FA 4%, #F0F2F6 25%, #F8F9FA 36%);
+            background-size: 1000px 100%;
+        }
+        .s-box { background: #F0F2F6; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -175,14 +199,7 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                     
                     <div style="width: 1px; height: 30px; background: var(--border-color); margin: 0 5px;"></div>
                     
-                    <div class="profile" onclick="window.location='settings-profile.php'">
-                        <img src="images/avatar-1.png" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=EFEAF8&color=623CEA'">
-                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <span style="font-weight:700; color:var(--text-dark); font-size:14px; line-height:1.2;">Administrator</span>
-                            <span style="font-size:11px; font-weight:600; color:var(--text-gray);">QOON Admin</span>
-                        </div>
-                        <i class="fas fa-chevron-down" style="font-size:10px; color:#A6A9B6; margin-left:10px;"></i>
-                    </div>
+
                 </div>
             </header>
 
@@ -204,7 +221,47 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                 </div>
             </div>
 
-            <div class="table-card">
+            <!-- Shimmer Loader Grid -->
+            <div id="shimmerLoader" class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="35%"><div class="s-box shimmer-bg" style="height:15px; width:100px;"></div></th>
+                            <th width="20%"><div class="s-box shimmer-bg" style="height:15px; width:80px;"></div></th>
+                            <th width="20%"><div class="s-box shimmer-bg" style="height:15px; width:80px;"></div></th>
+                            <th width="15%"><div class="s-box shimmer-bg" style="height:15px; width:80px;"></div></th>
+                            <th width="10%"><div class="s-box shimmer-bg" style="height:15px; width:40px;"></div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php for($i=0; $i<6; $i++) { ?>
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:16px;">
+                                    <div class="s-box shimmer-bg" style="width:44px; height:44px; border-radius:14px;"></div>
+                                    <div style="display:flex; flex-direction:column; gap:8px;">
+                                        <div class="s-box shimmer-bg" style="height:12px; width:120px;"></div>
+                                        <div class="s-box shimmer-bg" style="height:10px; width:80px;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                    <div class="s-box shimmer-bg" style="height:12px; width:90px;"></div>
+                                    <div class="s-box shimmer-bg" style="height:10px; width:60px;"></div>
+                                </div>
+                            </td>
+                            <td><div class="s-box shimmer-bg" style="height:25px; width:100px; border-radius:20px;"></div></td>
+                            <td><div class="s-box shimmer-bg" style="height:35px; width:80px; border-radius:12px;"></div></td>
+                            <td align="right"><div class="s-box shimmer-bg" style="height:38px; width:38px; border-radius:12px; display:inline-block;"></div></td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Real Data Grid -->
+            <div id="realContent" class="table-card" style="display:none; transition: opacity 0.4s ease;">
                 <table>
                     <thead>
                         <tr>
@@ -223,7 +280,7 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                                         <?php if (!empty($u['UserPhoto'])) { ?>
                                             <img src="<?= $u['UserPhoto'] ?>" class="u-avatar">
                                         <?php } else { ?>
-                                            <div class="u-avatar"><?= strtoupper(substr($u['name'], 0, 1)) ?></div>
+                                            <div class="u-avatar"><?= strtoupper(substr(trim($u['name']), 0, 1) . (strpos(trim($u['name']), ' ') !== false ? substr(explode(' ', trim($u['name']))[1], 0, 1) : '')) ?></div>
                                         <?php } ?>
                                         <div style="display:flex; flex-direction:column; justify-content:center; gap:2px;">
                                             <span style="font-weight:800; font-size:14px;"><?= $u['name'] ?></span>
@@ -303,5 +360,19 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
             </div>
         </main>
     </div>
+
+    <script>
+        // Shimmer Transition Logic
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('shimmerLoader').style.display = 'none';
+                const rc = document.getElementById('realContent');
+                rc.style.display = 'block';
+                // Force browser reflow to ensure CSS transition triggers smoothly
+                rc.offsetHeight;
+                rc.style.opacity = '1';
+            }, 400); // Small 400ms delay to make it feel deliberate and hide jitter
+        });
+    </script>
 </body>
 </html>

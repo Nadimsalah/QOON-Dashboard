@@ -22,7 +22,7 @@ if($Type == 'Photos') {
     $path = "photo/$photo1name.$extension";
 }
 // Using generic protocol relative path for compatibility with frontend replacements
-$actualpath = "https://jibler.app/db/db/$path";
+$actualpath = "https://qoon.app/$path";
 
 $sql = "INSERT INTO ShopStory (StoryPhoto, ShopID, StotyType) VALUES ('$actualpath', '$ShopID', '$Type')";
 

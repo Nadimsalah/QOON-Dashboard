@@ -352,7 +352,7 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
             position: relative;
             overflow: hidden;
             transition: 0.3s;
-            border: 1px solid rgba(255,255,255,0.8);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             cursor: pointer;
         }
 
@@ -369,7 +369,7 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
             z-index: 1;
         }
 
@@ -414,39 +414,100 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
             object-fit: cover;
         }
 
-        /* Sidebar Toggle Mobile */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 10000;
-        }
+        /* ----- MOBILE RESPONSIVENESS ----- */
+        @media (max-width: 991px) {
+            /* Allow page to scroll vertically on mobile */
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
 
-        @media (max-width: 1024px) {
+            /* Hide the local inline sidebar (260px rail) — sidebar.php handles mobile nav */
+            .sidebar { display: none !important; }
+
+            .main-panel {
+                padding: 15px;
+                overflow-y: visible;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+                margin-bottom: 20px;
+            }
+
+            .search { width: 100%; }
+
+            .header-actions {
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .action-combo { font-size: 13px; }
+
+            /* 2×2 metric cards */
+            .top-cards-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .metric-card {
+                padding: 14px;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .metric-icon { width: 44px; height: 44px; font-size: 18px; }
+            .metric-info .val { font-size: 20px; }
+
+            /* Stack dashboard grid */
             .dashboard-grid {
                 grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
             }
 
+            .col-left,
+            .col-right {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            /* Shorter chart on tablet */
+            #regChart { max-height: 240px; }
+
+            /* Hide shimmer sidebar skeleton */
+            #shimmerOverlay>.skeleton-box:first-child { display: none !important; }
+        }
+
+        /* ----- PHONE (≤ 600px) ----- */
+        @media (max-width: 600px) {
             .top-cards-row {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
             }
 
-            .sidebar {
-                position: fixed;
-                left: -260px;
-                height: 100%;
-                z-index: 10001;
-                transition: 0.3s;
-            }
+            .metric-card { padding: 12px; }
+            .metric-info .val { font-size: 18px; }
+            .metric-info .label { font-size: 10px; }
 
-            .sidebar.active {
-                left: 0;
-            }
+            .card { padding: 16px; }
+            .card-title { font-size: 14px; }
 
-            .sidebar-overlay.active {
-                display: block;
-            }
+            /* Chart height on phone */
+            #regChart  { max-height: 200px !important; }
+
+            /* Mini-table: hide date column on very small screens */
+            .mini-table td:last-child { display: none; }
+
+            /* Period dropdown: full width */
+            .period-dropdown { width: 100%; right: auto; left: 0; }
         }
     </style>
 </head>
@@ -503,42 +564,51 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                             <option value="">All Cities</option>
                             <?php while ($c = mysqli_fetch_assoc($cities_res)) { ?>
                                 <option value="<?= $c['CityID'] ?>" <?= $cityID == $c['CityID'] ? 'selected' : '' ?>>
-                                    <?= $c['CityName'] ?></option>
+                                    <?= $c['CityName'] ?>
+                                </option>
                             <?php } ?>
                         </select>
                     </div>
-                    <div class="profile" onclick="window.location='settings-profile.php'">
-                        <img src="images/avatar-1.png">
-                        <span>Administrator</span>
-                        <i class="fas fa-chevron-down" style="font-size:10px; color:#A6A9B6;"></i>
-                    </div>
+
                 </div>
             </header>
 
             <div class="top-cards-row">
-                <div class="card metric-card" onclick="location.href='user_list.php?type=all&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
-                    <div class="metric-icon" style="background: linear-gradient(135deg, #F0EDFD, #FFFFFF); color: var(--accent-purple);"><i class="fas fa-users"></i></div>
+                <div class="card metric-card"
+                    onclick="location.href='user_list.php?type=all&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
+                    <div class="metric-icon"
+                        style="background: linear-gradient(135deg, #F0EDFD, #FFFFFF); color: var(--accent-purple);"><i
+                            class="fas fa-users"></i></div>
                     <div class="metric-info">
                         <span class="label">Total Users</span>
                         <span class="val"><?= number_format($UserNumber) ?></span>
                     </div>
                 </div>
-                <div class="card metric-card" onclick="location.href='user_list.php?type=new&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
-                    <div class="metric-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.15), #FFFFFF); color: #10B981;"><i class="fas fa-user-plus"></i></div>
+                <div class="card metric-card"
+                    onclick="location.href='user_list.php?type=new&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
+                    <div class="metric-icon"
+                        style="background: linear-gradient(135deg, rgba(16,185,129,0.15), #FFFFFF); color: #10B981;"><i
+                            class="fas fa-user-plus"></i></div>
                     <div class="metric-info">
                         <span class="label">New in Range</span>
                         <span class="val" style="color:#10B981;"><?= number_format($NewUsers) ?></span>
                     </div>
                 </div>
-                <div class="card metric-card" onclick="location.href='user_list.php?type=android&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
-                    <div class="metric-icon" style="background: linear-gradient(135deg, rgba(0,122,255,0.15), #FFFFFF); color: var(--accent-blue);"><i class="fab fa-android"></i></div>
+                <div class="card metric-card"
+                    onclick="location.href='user_list.php?type=android&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
+                    <div class="metric-icon"
+                        style="background: linear-gradient(135deg, rgba(0,122,255,0.15), #FFFFFF); color: var(--accent-blue);">
+                        <i class="fab fa-android"></i></div>
                     <div class="metric-info">
                         <span class="label">Android</span>
                         <span class="val" style="color:var(--accent-blue);"><?= number_format($AndroidCount) ?></span>
                     </div>
                 </div>
-                <div class="card metric-card" onclick="location.href='user_list.php?type=ios&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
-                    <div class="metric-icon" style="background: linear-gradient(135deg, rgba(255,138,76,0.15), #FFFFFF); color: var(--accent-orange);"><i class="fab fa-apple"></i></div>
+                <div class="card metric-card"
+                    onclick="location.href='user_list.php?type=ios&start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>'">
+                    <div class="metric-icon"
+                        style="background: linear-gradient(135deg, rgba(255,138,76,0.15), #FFFFFF); color: var(--accent-orange);">
+                        <i class="fab fa-apple"></i></div>
                     <div class="metric-info">
                         <span class="label">iOS</span>
                         <span class="val" style="color:var(--accent-orange);"><?= number_format($IphoneCount) ?></span>
@@ -557,14 +627,30 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                         <table class="mini-table">
                             <?php foreach ($recentSignups as $u) { ?>
                                 <tr>
-                                    <td width="55"><img src="<?= $u['UserPhoto'] ?: 'images/ensan.jpg' ?>" class="u-img">
+                                    <td width="55">
+                                        <?php
+                                        $uPhoto = $u['UserPhoto'];
+                                        if (strpos($uPhoto, 'https://jibler.app/db/db/photo/') !== false) {
+                                            $uPhoto = str_replace('https://jibler.app/db/db/', '', $uPhoto);
+                                        }
+                                        ?>
+                                        <?php if (!empty($uPhoto)) { ?>
+                                            <img src="<?= $uPhoto ?>" class="u-img"
+                                                onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<?= urlencode($u['name']) ?>&background=EFEAF8&color=623CEA&bold=true'">
+                                        <?php } else { ?>
+                                            <div
+                                                style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, var(--accent-purple), #FFC000); color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; box-shadow: 0 4px 10px rgba(98, 60, 234, 0.2);">
+                                                <?= strtoupper(substr(trim($u['name']), 0, 1) . (strpos(trim($u['name']), ' ') !== false ? substr(explode(' ', trim($u['name']))[1], 0, 1) : '')) ?>
+                                            </div>
+                                        <?php } ?>
                                     </td>
                                     <td>
                                         <div style="font-weight:700;"><?= $u['name'] ?></div>
                                         <div style="font-size:11px; color:var(--text-gray);"><?= $u['Email'] ?></div>
                                     </td>
                                     <td align="right" style="color:var(--text-gray);">
-                                        <?= date('d M', strtotime($u['CreatedAtUser'])) ?></td>
+                                        <?= date('d M', strtotime($u['CreatedAtUser'])) ?>
+                                    </td>
                                 </tr>
                             <?php } ?>
                         </table>
@@ -588,16 +674,23 @@ $cities_res = mysqli_query($con, "SELECT CityID, CityName FROM Cities WHERE Stat
                         <div class="card-header"><span class="card-title">Top Spenders</span></div>
                         <div style="display:flex; flex-direction:column; gap:15px;">
                             <?php foreach ($topUsers as $u) { ?>
-                                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid #F9FAFB;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px; border-bottom:1px solid #F9FAFB;">
                                     <div style="display:flex; align-items:center; gap:12px;">
                                         <?php if (!empty($u['UserPhoto'])) { ?>
-                                            <img src="<?= $u['UserPhoto'] ?>" style="width:38px; height:38px; border-radius:12px; object-fit:cover; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                            <img src="<?= $u['UserPhoto'] ?>"
+                                                style="width:38px; height:38px; border-radius:12px; object-fit:cover; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                                         <?php } else { ?>
-                                            <div style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, var(--accent-purple), #FFC000); color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; box-shadow: 0 4px 10px rgba(98, 60, 234, 0.2);"><?= strtoupper(substr($u['name'], 0, 1)) ?></div>
+                                            <div
+                                                style="width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, var(--accent-purple), #FFC000); color:#FFF; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; box-shadow: 0 4px 10px rgba(98, 60, 234, 0.2);">
+                                                <?= strtoupper(substr(trim($u['name']), 0, 1) . (strpos(trim($u['name']), ' ') !== false ? substr(explode(' ', trim($u['name']))[1], 0, 1) : '')) ?>
+                                            </div>
                                         <?php } ?>
-                                        <span style="font-weight:700; font-size:14px; color:var(--text-dark);"><?= $u['name'] ?></span>
+                                        <span
+                                            style="font-weight:700; font-size:14px; color:var(--text-dark);"><?= $u['name'] ?></span>
                                     </div>
-                                    <span style="font-weight:800; color:var(--accent-blue); background:rgba(0,122,255,0.08); padding:6px 12px; border-radius:20px; font-size:12px; border:1px solid rgba(0,122,255,0.1);">
+                                    <span
+                                        style="font-weight:800; color:var(--accent-blue); background:rgba(0,122,255,0.08); padding:6px 12px; border-radius:20px; font-size:12px; border:1px solid rgba(0,122,255,0.1);">
                                         <?= number_format($u['Balance'] ?? 0) ?> MAD
                                     </span>
                                 </div>

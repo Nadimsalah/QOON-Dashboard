@@ -91,6 +91,64 @@ $countries_res = mysqli_query($con, "SELECT * FROM Countries");
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(98, 60, 234, 0.4); }
         
         .radio-box { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border: 1px solid var(--accent-purple); background: var(--accent-purple-light); border-radius: 12px; color: var(--accent-purple); font-weight: 700; font-size: 14px; cursor: pointer; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+
+            /* Hide desktop sidebar rail */
+            .sidebar { display: none !important; }
+
+            .main-panel {
+                padding: 16px 16px 80px; /* bottom pad for tab bar */
+                overflow-y: visible;
+                overflow-x: hidden;
+            }
+
+            .header { margin-bottom: 16px; }
+            .back-btn { font-size: 13px; padding: 9px 14px; }
+
+            .page-title h1 { font-size: 22px; }
+            .page-title p  { font-size: 13px; }
+            .page-title    { margin-bottom: 18px; }
+
+            /* Form: single column */
+            .form-grid { grid-template-columns: 1fr; gap: 16px; }
+
+            /* Cards */
+            .card { padding: 20px; border-radius: 18px; }
+            .card-header { font-size: 15px; margin-bottom: 18px; }
+
+            /* Row-split inputs: single column on tablet */
+            .input-group.row-split { grid-template-columns: 1fr; gap: 0; }
+
+            /* Photo upload: keep side-by-side, just tighter */
+            .photo-upload { padding: 14px; gap: 14px; }
+            .photo-preview { width: 60px; height: 60px; font-size: 20px; }
+
+            /* File items */
+            .file-item { padding: 12px 14px; }
+            .file-title { font-size: 13px; }
+
+            /* Submit button */
+            .btn-submit { padding: 16px 20px; font-size: 15px; border-radius: 14px; }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .main-panel { padding: 12px 12px 80px; }
+
+            /* Photo upload: stack vertically */
+            .photo-upload { flex-direction: column; align-items: center; text-align: center; }
+
+            .input-group input,
+            .input-group select { padding: 12px 14px; font-size: 14px; }
+
+            .card { padding: 16px; }
+            .card-header { font-size: 14px; }
+        }
+
     </style>
 </head>
 <body>
@@ -100,10 +158,7 @@ $countries_res = mysqli_query($con, "SELECT * FROM Countries");
         <main class="main-panel">
             <header class="header">
                 <a href="driver.php" class="back-btn"><i class="fas fa-arrow-left"></i> Drivers Directory</a>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="images/avatar-1.png" style="width:36px; height:36px; border-radius:50%;" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=EFEAF8&color=623CEA'">
-                    <span style="font-weight:700; color:var(--text-dark); font-size:14px;">Administrator</span>
-                </div>
+
             </header>
 
             <div class="page-title">

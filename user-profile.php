@@ -131,6 +131,21 @@ $transactions_res = mysqli_query($con, "SELECT * FROM UserTransaction WHERE User
         .txn-title { font-weight: 700; font-size: 14px; color: var(--text-dark); margin-bottom: 2px;}
         .txn-date { font-size: 12px; color: var(--text-gray); font-weight: 500; }
         .txn-amount { font-weight: 800; color: #E11D48; background: rgba(225, 29, 72, 0.08); padding: 6px 12px; border-radius: 10px; font-size: 13px; }
+        /* ----- MOBILE RESPONSIVENESS ----- */
+        @media (max-width: 991px) {
+            .main-panel { padding: 15px; }
+            .header { flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 20px; }
+            .header > div:last-child { width: 100%; justify-content: space-between; }
+            .profile-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; gap: 20px; }
+            .form-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; gap: 15px; }
+            .card { padding: 20px; }
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-box.span-2 { grid-column: span 2; }
+            .badges-container { justify-content: flex-start; }
+            .identity-header { margin-bottom: 20px; }
+            .txn-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .txn-amount { align-self: flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -146,12 +161,7 @@ $transactions_res = mysqli_query($con, "SELECT * FROM UserTransaction WHERE User
                 <div style="display:flex; gap: 15px; align-items:center;">
                     <a href="user.php" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
                     <div style="width: 1px; height: 30px; background: var(--border-color); margin: 0 5px;"></div>
-                    <div class="profile" onclick="window.location='settings-profile.php'">
-                        <img src="images/avatar-1.png" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=EFEAF8&color=623CEA'">
-                        <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                            <span style="font-weight:700; color:var(--text-dark); font-size:14px; line-height:1.2;">Administrator</span>
-                        </div>
-                    </div>
+
                 </div>
             </header>
 
@@ -163,7 +173,7 @@ $transactions_res = mysqli_query($con, "SELECT * FROM UserTransaction WHERE User
                             <?php if (!empty($UserPhoto)): ?>
                                 <img src="<?= $UserPhoto ?>" class="identity-img">
                             <?php else: ?>
-                                <div class="identity-img"><?= strtoupper(substr($name, 0, 1)) ?></div>
+                                <div class="identity-img"><?= strtoupper(substr(trim($name), 0, 1) . (strpos(trim($name), ' ') !== false ? substr(explode(' ', trim($name))[1], 0, 1) : '')) ?></div>
                             <?php endif; ?>
                             <h2 class="identity-name"><?= $name ?></h2>
                             <div class="identity-sub"><i class="fas fa-id-badge"></i> User ID: <?= $id ?></div>

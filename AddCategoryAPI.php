@@ -13,10 +13,10 @@ $DeliveryZoneIDs = $_POST["DeliveryZoneID"];
   $Carphoto =  $_FILES["Photo"]["tmp_name"];
 
   $photo1name="w-".rand();
-  $path = "db/db/photo/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
  
-  $actualpath = "https://jibler.app/$path";
+  $actualpath = "https://qoon.app/$path";
  
   $path = "photo/$photo1name.png";
  
@@ -39,9 +39,9 @@ $DeliveryZoneIDs = $_POST["DeliveryZoneID"];
    $key['Result'] = "success";
 
    
-   if (move_uploaded_file($_FILES["Photo"]["tmp_name"], $path)) {
+    if (move_uploaded_file($_FILES["Photo"]["tmp_name"], $path)) {
         echo "The file ". basename( $_FILES["Photo"]["name"]). " has been uploaded.";
-		header("location: https://jibler.app/db/db/apps.php"); 
+		header("location: apps.php"); 
     } else {
         echo "Sorry, there was an error uploading your file.";
     }

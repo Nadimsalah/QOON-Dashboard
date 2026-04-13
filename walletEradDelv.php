@@ -1,724 +1,326 @@
+<?php
+require "conn.php";
+mysqli_set_charset($con, "utf8mb4");
+
+// Core Income Channels
+$resIncome = mysqli_query($con, "SELECT * FROM Money");
+$incomeData = mysqli_fetch_assoc($resIncome);
+$TotalIncome     = $incomeData["TotalIncome"]     ?? 0;
+$SubscriptionR   = $incomeData["SubscriptionR"]   ?? 0;
+$SalesR          = $incomeData["SalesR"]           ?? 0;
+$DeliveryR       = $incomeData["DeliveryR"]        ?? 0;
+$BalanceTraComm  = $incomeData["BalanceTraComm"]   ?? 0;
+$BalanceWithComm = $incomeData["BalanceWithComm"]  ?? 0;
+$ServComm        = $incomeData["ServComm"]         ?? 0;
+
+// Driver commission percentage
+$resComm = mysqli_query($con, "SELECT DriverCommesion FROM MoneyStop");
+$commData = mysqli_fetch_assoc($resComm);
+$DriverCommesion = $commData["DriverCommesion"] ?? 0;
+
+// Pagination
+$page   = isset($_GET["Page"]) ? (int)$_GET["Page"] : 0;
+if ($page < 0) $page = 0;
+$limit  = 10;
+$offset = $page * $limit;
+
+$SearchQuery = isset($_GET["DriverName"]) ? mysqli_real_escape_string($con, $_GET["DriverName"]) : '';
+$where = "1=1";
+if ($SearchQuery != '') {
+    $where .= " AND CONCAT(Drivers.FName,' ',Drivers.LName) LIKE '%$SearchQuery%'";
+}
+
+$resDelv = mysqli_query($con, "
+    SELECT DriverRevTransaction.DriverRevTransactionID,
+           DriverRevTransaction.OrderID,
+           DriverRevTransaction.Money,
+           DriverRevTransaction.CreatedAtDriverRevTransaction,
+           DriverRevTransaction.DeliveryZoneID,
+           Drivers.FName, Drivers.LName, Drivers.PersonalPhoto, Drivers.DriverID
+    FROM DriverRevTransaction
+    JOIN Drivers ON DriverRevTransaction.DriverID = Drivers.DriverID
+    WHERE $where
+    ORDER BY DriverRevTransactionID DESC
+    LIMIT $limit OFFSET $offset
+");
+
+$delvList = [];
+if ($resDelv) {
+    while ($row = mysqli_fetch_assoc($resDelv)) {
+        // Get city name
+        $zoneId = (int)$row["DeliveryZoneID"];
+        $resZone = mysqli_query($con, "SELECT CityName FROM DeliveryZone WHERE DeliveryZoneID = $zoneId");
+        $zoneRow = mysqli_fetch_assoc($resZone);
+        $row["CityName"] = $zoneRow["CityName"] ?? "—";
+        $delvList[] = $row;
+    }
+}
+
+?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-   <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <title> Wallet | Jibler Dashboard </title>
-      <!-- Animate With CSS -->
-      <link rel="stylesheet" type="text/css" href="css/animate.css">
-      <!-- Font Awesome KIT -->
-      <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/fontawesome.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/brands.css" rel="stylesheet">
-      <link href="fontawesome-kit-5/css/solid.css" rel="stylesheet">
-      <script defer src="fontawesome-kit-5/js/all.js"></script>
-      <script defer src="fontawesome-kit-5/js/brands.js"></script>
-      <script defer src="fontawesome-kit-5/js/solid.js"></script>
-      <script defer src="fontawesome-kit-5/js/fontawesome.js"></script>
-      <!-- Bootstrap Grids -->
-      <link href="css/bootstrap.min.css" rel="stylesheet">
-      <!-- Custom Stylings -->
-      <link href="css/custom.css" rel="stylesheet">
-      <!-- Jquery Library -->
-      <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-      <style type="text/css">
-         .custom-box1-head {
-         flex-flow: column;
-         }
-         .custom-box1-head h4 {
-         width: 100%;
-         text-align: center;
-         margin-bottom: 10px;
-         }
-      </style>
-	  
-	 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Revenues Ledger | QOON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-app: #F5F6FA; --bg-white: #FFFFFF;
+            --text-dark: #2A3042; --text-gray: #A6A9B6;
+            --accent-purple: #623CEA; --accent-purple-light: #F0EDFD;
+            --accent-green: #10B981; --accent-blue: #007AFF;
+            --accent-orange: #F59E0B; --accent-red: #EF4444;
+            --border-color: #F0F2F6;
+            --shadow-card: 0 8px 30px rgba(0,0,0,0.03);
+            --shadow-float: 0 12px 35px rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
+        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
 
-	  
-   </head>
-   <body>
-      <section class="all-content">
-         <!-- Sidebar Section Starts Here -->
+        /* Sidebar (shared) */
+        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
+        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
+        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
+        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
+        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+        .nav-item i { font-size: 18px; width: 20px; text-align: center; }
+        .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
+        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
+
+        /* Main panel */
+        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+
+        /* Header / breadcrumb */
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: 16px; box-shadow: var(--shadow-card); flex-shrink: 0; }
+        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); flex-wrap: wrap; }
+        .breadcrumb a { color: var(--text-gray); text-decoration: none; transition: 0.2s; }
+        .breadcrumb a:hover { color: var(--accent-purple); }
+
+        /* KPI hero */
+        .kpi-master { display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, var(--accent-purple), #4A2BBF); border-radius: 20px; padding: 30px 40px; color: #FFF; margin-bottom: 30px; box-shadow: var(--shadow-float); flex-shrink: 0; }
+        .kpi-master h4 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; margin-bottom: 5px; }
+        .kpi-master h1 { font-size: 42px; font-weight: 800; display: flex; align-items: baseline; gap: 10px; }
+        .kpi-master h1 span { font-size: 20px; font-weight: 700; opacity: 0.7; }
+        .kpi-badge { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 20px; text-align: center; }
+        .kpi-badge small { display: block; font-size: 11px; opacity: 0.75; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+        .kpi-badge strong { font-size: 20px; font-weight: 800; }
+
+        /* Revenue channel cards */
+        .rev-channels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; flex-shrink: 0; }
+        .channel-card { background: var(--bg-white); border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-card); text-decoration: none; transition: 0.3s; border: 2px solid transparent; }
+        .channel-card:hover { transform: translateY(-3px); }
+        .channel-card.active { border-color: var(--accent-purple); background: var(--accent-purple-light); }
+        .ch-icon { width: 45px; height: 45px; border-radius: 12px; background: var(--accent-purple-light); color: var(--accent-purple); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .channel-card.active .ch-icon { background: var(--accent-purple); color: #FFF; }
+        .ch-data h5 { font-size: 12px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; margin-bottom: 3px; }
+        .ch-data h3 { font-size: 18px; font-weight: 800; color: var(--text-dark); }
+        .channel-card.active .ch-data h5 { color: var(--accent-purple); }
+
+        /* Content area: table full width */
+        .content-grid { display: block; margin-bottom: 20px; }
+
+        /* Table container */
+        .table-container { background: var(--bg-white); border-radius: 20px; padding: 30px; box-shadow: var(--shadow-card); overflow: hidden; }
+        .table-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .search-box { background: var(--bg-app); border-radius: 12px; padding: 10px 18px; display: flex; align-items: center; gap: 10px; width: 280px; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 13px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; }
+        th { font-size: 11px; font-weight: 700; color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px; padding: 15px; border-bottom: 2px solid var(--border-color); text-align: left; }
+        td { font-size: 14px; font-weight: 600; color: var(--text-dark); padding: 18px 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        .part-node { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-dark); transition: 0.2s; }
+        .part-node:hover { color: var(--accent-purple); }
+        .part-node img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-color); }
+        .badge-city { font-size: 12px; font-weight: 700; background: rgba(0,122,255,0.1); color: var(--accent-blue); padding: 4px 10px; border-radius: 8px; }
+        .rev-amt { font-size: 15px; font-weight: 800; color: var(--accent-green); }
+
+        /* Pagination */
+        .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 25px; font-size: 13px; font-weight: 600; color: var(--text-gray); }
+        .page-ctrls { display: flex; gap: 8px; }
+        .page-btn { padding: 8px 16px; border-radius: 10px; background: var(--bg-app); color: var(--text-dark); text-decoration: none; transition: 0.2s; font-weight: 700; border: 1px solid var(--border-color); }
+        .page-btn:hover { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
+        .page-btn.disabled { opacity: 0.4; pointer-events: none; }
+
+        /* Chart panel */
+        .stats-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 0px; }
+        .stat-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-app); border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 160px; }
+        .stat-item span { font-size: 12px; font-weight: 600; color: var(--text-gray); }
+        .stat-item strong { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .kpi-master { flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px; margin-bottom: 16px; border-radius: 16px; }
+            .kpi-master h1 { font-size: 28px; }
+            .kpi-badge { width: 100%; }
+            .rev-channels { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .channel-card { padding: 14px; }
+            .content-grid { grid-template-columns: 1fr; gap: 16px; }
+            .table-container { padding: 16px; border-radius: 14px; }
+            .table-head { flex-wrap: wrap; gap: 10px; }
+            .search-box { width: 100%; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; }
+            .pagination { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .chart-panel { padding: 16px; }
+        }
+        @media (max-width: 600px) {
+            .rev-channels { grid-template-columns: 1fr; }
+            /* Hide City col on phone */
+            table thead tr th:nth-child(4),
+            table tbody tr td:nth-child(4) { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-envelope">
+    <?php include 'sidebar.php'; ?>
+
+    <main class="main-panel">
+        <!-- Breadcrumb Header -->
+        <header class="header">
+            <div class="breadcrumb">
+                <a href="wallet.php"><i class="fas fa-wallet"></i> Financial Overview</a>
+                <span>/</span>
+                <a href="walletErad.php">Income Ledgers</a>
+                <span>/</span>
+                <span style="color: var(--accent-purple);">Delivery Revenues</span>
+            </div>
+        </header>
+
+        <!-- KPI Hero -->
+        <div class="kpi-master">
+            <div>
+                <h4>Total Aggregated Platform Income</h4>
+                <h1><?= number_format($TotalIncome, 2) ?> <span>MAD</span></h1>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <div class="kpi-badge">
+                    <small>Delivery Income</small>
+                    <strong><?= number_format($DeliveryR, 2) ?> MAD</strong>
+                </div>
+                <div class="kpi-badge">
+                    <small>Driver Fee Rate</small>
+                    <strong><?= $DriverCommesion ?> MAD</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Channel Nav -->
+        <div class="rev-channels">
+            <a href="walletErad.php" class="channel-card">
+                <div class="ch-icon"><i class="fas fa-crown"></i></div>
+                <div class="ch-data"><h5>Subscription Rev.</h5><h3><?= number_format($SubscriptionR, 2) ?> MAD</h3></div>
+            </a>
+            <a href="walletEradSalesR.php" class="channel-card">
+                <div class="ch-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="ch-data"><h5>Sales Revenues</h5><h3><?= number_format($SalesR, 2) ?> MAD</h3></div>
+            </a>
+            <a href="walletEradDelv.php" class="channel-card active">
+                <div class="ch-icon"><i class="fas fa-motorcycle"></i></div>
+                <div class="ch-data"><h5>Delivery Revenues</h5><h3><?= number_format($DeliveryR, 2) ?> MAD</h3></div>
+            </a>
+            <a href="walletEradRased1.php" class="channel-card">
+                <div class="ch-icon"><i class="fas fa-exchange-alt"></i></div>
+                <div class="ch-data"><h5>Balance Transfer</h5><h3><?= number_format($BalanceTraComm, 2) ?> MAD</h3></div>
+            </a>
+            <a href="walletEradRased2.php" class="channel-card">
+                <div class="ch-icon"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="ch-data"><h5>Withdrawal Comm.</h5><h3><?= number_format($BalanceWithComm, 2) ?> MAD</h3></div>
+            </a>
+            <a href="walletEradRased3.php" class="channel-card">
+                <div class="ch-icon"><i class="fas fa-percentage"></i></div>
+                <div class="ch-data"><h5>Service Commission</h5><h3><?= number_format($ServComm, 2) ?> MAD</h3></div>
+            </a>
+        </div>
+
+        <!-- Content Grid: Table + Chart -->
+        <div class="content-grid">
+            <!-- Transaction Table -->
+            <div class="table-container">
+                <div class="table-head">
+                    <h2 style="font-size:18px; font-weight:800;">
+                        <i class="fas fa-motorcycle" style="color:var(--accent-purple);"></i> Delivery Revenue Log
+                    </h2>
+                    <form class="search-box" method="GET">
+                        <i class="fas fa-search" style="color:var(--text-gray);"></i>
+                        <input type="text" name="DriverName" placeholder="Search Driver Name..." value="<?= htmlspecialchars($SearchQuery) ?>">
+                    </form>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            <th>Order ID</th>
+                            <th>Commission</th>
+                            <th>City</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (count($delvList) === 0): ?>
+                        <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-gray);">No delivery revenue logs found.</td></tr>
+                        <?php endif; ?>
+                        <?php foreach ($delvList as $t): ?>
+                        <tr>
+                            <td>
+                                <a href="driver-profile.php?id=<?= $t['DriverID'] ?>" class="part-node">
+                                    <img src="<?= htmlspecialchars($t['PersonalPhoto']) ?>" onerror="this.src='images/placeholder.png'">
+                                    <span><?= htmlspecialchars($t['FName'] . ' ' . $t['LName']) ?></span>
+                                </a>
+                            </td>
+                            <td>
+                                <span style="font-weight:800; color:var(--accent-blue); background:rgba(0,122,255,0.1); padding:5px 12px; border-radius:8px; font-size:12px;">
+                                    #<?= $t['OrderID'] ?>
+                                </span>
+                            </td>
+                            <td><span class="rev-amt"><?= number_format($t['Money'], 2) ?> MAD</span></td>
+                            <td><span class="badge-city"><?= htmlspecialchars($t['CityName']) ?></span></td>
+                            <td style="color:var(--text-gray); font-size:13px;"><?= $t['CreatedAtDriverRevTransaction'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <span>Delivery Commission Transactions</span>
+                    <div class="page-ctrls">
+                        <a href="?DriverName=<?= urlencode($SearchQuery) ?>&Page=<?= max(0, $page - 1) ?>" class="page-btn <?= $page <= 0 ? 'disabled' : '' ?>">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                        <a href="?DriverName=<?= urlencode($SearchQuery) ?>&Page=<?= $page + 1 ?>" class="page-btn <?= count($delvList) < $limit ? 'disabled' : '' ?>">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Summary Bar -->
+        <div class="stats-row" style="margin-bottom:20px;">
+            <div class="stat-item">
+                <span>Total Delivery Income</span>
+                <strong><?= number_format($DeliveryR, 2) ?> MAD</strong>
+            </div>
+            <div class="stat-item">
+                <span>Driver Fee Rate</span>
+                <strong><?= $DriverCommesion ?> MAD / order</strong>
+            </div>
+            <div class="stat-item">
+                <span>Share of Total Income</span>
+                <strong><?= $TotalIncome > 0 ? number_format(($DeliveryR / $TotalIncome) * 100, 1) : '0' ?>%</strong>
+            </div>
+        </div>
+
+    </main>
+</div>
 
 
-           <div class="SecondDivID"></div> 
-    <script src=" https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-
-        <script type="text/javascript">
-
-          function loadhem(){
-
-            $(".SecondDivID").load("leftNav.php?Page=wallet.php");
-
-          }
-          
-          loadhem();
-
-        </script>
-
-         <!-- Sidebar Section Starts Here -->
-         <!-- Right Section Starts Here -->
-         <main class="right-content">
-            <!-- Top Bar Section Starts Here -->
-            <section class="top-bar">
-               <div class="top-logo">
-                  <img src="images/logo.png">
-               </div>
-               <div class="top-right">
-                  <div class="row center-row1">
-                     <div class="col-md-5 col-lg-5 col-sm-12 col-12 order-lg-1 order-md-1 order-sm-2 order-2">
-                        <div class="search-form1">
-                           <form>
-                              <input type="text" placeholder="Search anything..." name="">
-                              <button> <i class="fa fa-search"> </i> </button>
-                           </form>
-                        </div>
-                     </div>
-                     <div class="col-md-7 col-lg-7 col-sm-12 col-12 order-lg-2 order-md-2 order-sm-1 order-1">
-                        <div class="widgets-holder1">
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 Morocco 
-                                 <img src="images/flag-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                   
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="country-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 All Cities
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="orders.php"> All Cities</a>
-
-                                    <?php                 require "conn.php";
-
-                                    
-                                     $res = mysqli_query($con,"SELECT * FROM DeliveryZone");
-
-                                        $result = array();
-                        
-                                        while($row = mysqli_fetch_assoc($res)){
-                                    
-                                    ?> 
-                                     
-                                     
-                                    <a class="dropdown-item" href="wallet.php?CityName=<?php echo $row["CityName"]; ?>&cityID=<?php echo $row["DeliveryZoneID"]; ?>"><?php echo $row["CityName"]; ?></a>
-                                    
-                                    <?php } ?>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="bell-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/bell-icon.png">
-                                 <span class="counter-1"> 2 </span>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                   
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="user-dropdown">
-                              <div class="dropdown right-drop">
-                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                 <img src="images/avatar-1.png">
-                                 <i class="fa fa-angle-down"> </i>
-                                 </button>
-                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                   <a class="dropdown-item" href="settings-profile.php">Setting</a>
-                                    <a class="dropdown-item" href="logout.php">logout</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </section>
-            <!-- Top Bar Section Starts Here -->
-            <!-- Main Content Section Starts Here -->
-            <section class="main-content">
-               <div class="container">
-                  
-				  
-				  
-				   <?php
-                                    require "conn.php";
-                                        $res = mysqli_query($con,"select sum(OrderPriceFromShop) from Orders");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$sum = $row["sum(OrderPriceFromShop)"];
-								
-							}
-							
-							
-					?>		
-					
-					
-					 <?php
-                            $res = mysqli_query($con,"select sum(OrderPrice) from Orders");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$OrderPrice = $row["sum(OrderPrice)"];
-								
-							}
-							
-							
-					?>	
-
-
-					<?php
-                            $res = mysqli_query($con,"select sum(Money) from DriverTransactions");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$Money = $row["sum(Money)"];
-								
-							}
-							
-							
-					?>		
-					
-					
-					 <?php
-									
-									$SevenDayDate = date('Y-m-d',strtotime("-7 days"));
-									
-                                        $res = mysqli_query($con,"SELECT sum(OrderPriceFromShop) FROM Orders JOIN Shops ON Orders.ShopID = Shops.ShopID WHERE (OrderState='Rated' OR OrderState='Done') AND ShopRecive = 'NO' AND Shops.Type = 'Our' AND CreatedAtOrders < '$SevenDayDate'");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$fsum = $row["sum(OrderPriceFromShop)"];
-								
-								
-							}?>
-							
-							
-					 <?php
-									
-									
-                                        $res = mysqli_query($con,"SELECT sum(OrderPriceFromShop) FROM Orders JOIN Shops ON Orders.ShopID = Shops.ShopID WHERE (OrderState='Rated' OR OrderState='Done') AND PaidForDriver = 'Paid' AND Shops.Type = 'Our'");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$ssum = $row["sum(OrderPriceFromShop)"];
-								
-								
-							}?>
-							
-							
-							
-					<?php
-									
-									
-                                        $res = mysqli_query($con,"SELECT sum(OrderPriceFromShop) FROM Orders JOIN Shops ON Orders.ShopID = Shops.ShopID WHERE (OrderState='Rated' OR OrderState='Done') AND PaidForDriver != 'Paid' AND Shops.Type = 'Our'");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$sssum = $row["sum(OrderPriceFromShop)"];
-								
-								
-							}
-							
-							require "conn.php";
-									
-									
-							$res = mysqli_query($con,"select * from Money");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-								
-								$TotalIncome = $row["TotalIncome"];
-								
-								$SubscriptionR  = $row["SubscriptionR"];
-								$SalesR = $row["SalesR"];
-								$DeliveryR = $row["DeliveryR"];
-								$BalanceTraComm = $row["BalanceTraComm"];
-								$BalanceWithComm = $row["BalanceWithComm"];
-								$ServComm = $row["ServComm"];
-
-								
-							}		
-							
-							?>		
-							
-							
-							
-				  		
-				  
-				  <h3 style="color:#5051f8"> Income : <span style="color:black"> <?php echo $TotalIncome; ?> MAD </span></h3>
-                  <div class="row">
-					
-					
-				  
-					  <div class=" col-md-8 col-lg-8 col-sm-8 col-12">	
-					     <div class="row"> 
-						 <div class="col-md-4 col-lg-4 col-sm-12 col-12" >
-							<a class="custom-box1" href="walletErad.php"> <div >
-							   <div class="custom-box1-head">
-								  <h4 style="font-size:15px;margin-bottom:10px;">  Subscription Revenues </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:black"> <?php echo $SubscriptionR; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						<div class="col-md-4 col-lg-4 col-sm-12 col-12" >
-							<a class="custom-box1" href="walletEradSalesR.php"> <div >
-							   <div class="custom-box1-head">
-								  <h4 style="font-size:15px;margin-bottom:10px;"> Sales Revenues </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:black"> <?php echo $SalesR ; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						 <div class="col-md-4 col-lg-4 col-sm-12 col-12" >
-							<a style="background-color:#5051f9;" class="custom-box1" href="walletEradDelv.php"> <div >
-							   <div class="custom-box1-head">
-								  <h4 style="font-size:15px;margin-bottom:10px;color:white">  Delivery Revenues </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:white"> <?php echo $DeliveryR; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						 <div class="col-md-4 col-lg-4 col-sm-12 col-12">
-							<a class="custom-box1" href="walletEradRased1.php"> <div >
-							   <div class="custom-box1-head">
-								  <h4 style="font-size:15px;margin-bottom:10px;">  Balance Transfer Commission </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:black"> <?php echo $BalanceTraComm; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						 <div class="col-md-4 col-lg-4 col-sm-12 col-12"  >
-							<a class="custom-box1" href="walletEradRased2.php"> <div >
-							   <div class="custom-box1-head">  
-								  <h4 style="font-size:15px;margin-bottom:10px;">  Balance Withdrawal Commission </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:black"> <?php echo $BalanceWithComm; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						 <div class="col-md-4 col-lg-4 col-sm-12 col-12" >
-							<a  class="custom-box1" href="walletEradRased3.php"> <div >
-							   <div class="custom-box1-head">
-								  <h4 style="font-size:15px;margin-bottom:10px;">  Service Commission </h4>
-								  
-							   </div>
-							   <div class="custom-box1-data" style="display: flex;justify-content: center;align-items: center;">
-								  <h4 style="color:black"> <?php echo $ServComm; ?> MAD </h4>
-							   </div>
-							</div></a>
-						 </div>
-						 </div>
-						 
-						 
-							<div class="row">
-                     <div class="col-md-12 col-lg-12 col-sm-12 col-12 ">
-                        <div class="custom-block3">
-                           <div class="block-element">
-                              <div class="sec-head3">
-                                 <h4> Transactions </h4>
-                                 <!--<div class="search-form2">-->
-                                 <!--   <form>-->
-                                 <!--      <input type="text" placeholder="Search by Name Phone  Email Id" name="">   -->
-                                 <!--      <i class="fa fa-search"> </i>-->
-                                 <!--   </form>-->
-                                 <!--</div>-->
-                                 <!--<button class="custom-btn1"> See all </button>-->
-                              </div>
-                           </div>
-                           
-                           
-                          
-                           
-                           
-                           
-                           <div class="table-wrapper">
-                              <table class="table-1">
-                                 <thead>
-                                    <tr >
-                                       <th style="color:black;"> Driver name </th>
-                                       <th style="color:black;"class="text-center"> Order ID </th>
-									   <th  style="color:black;"class="text-center"> Money </th>
-									   <th style="color:black;"class="text-center"> City </th>
-									   <th style="color:black;"class="text-center"> Date </th>
-									   <th style="color:black;" class="text-center"> Details </th>	
-                                    </tr>
-                                 </thead>
-                                 <tbody>
-                            <?php
-                                    
-                                    
-                                    $Page = $_GET["Page"];
-                                    if($Page==""){
-                                        $Page = 0;
-                                    }
-                                    $rr = 10 * ($Page);
-                                    
-                                    $ShopNamew = $_GET["ShopName"];
-                                    if($ShopNamew == ''){
-                                        $res = mysqli_query($con,"SELECT * FROM DriverRevTransaction JOIN Drivers ON DriverRevTransaction.DriverID = Drivers.DriverID order by DriverRevTransactionID desc limit $rr,10");
-                                    }else{
-                                        $rr = 0;
-                                        $res = mysqli_query($con,"SELECT * FROM Shops WHERE ShopName LIKE '%$ShopNamew%' order by ShopID desc limit $rr,10");
-
-                                    }
-                                    
-                                    if($cityID !=''){
-                        
-                                     $res = mysqli_query($con,"SELECT *, (6372.797 * acos(cos(radians($CityLat)) * cos(radians(ShopLat)) * cos(radians(ShopLongt) - radians($CityLongt)) + sin(radians($CityLat)) * sin(radians(ShopLat)))) AS distance FROM Shops WHERE  Shops.Status = 'ACTIVE' HAVING distance <= $Deliveryzone ORDER BY priority DESC , distance ASC limit $rr,10");
-                                                
-                                                                    
-                                      }
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-                                
-                                
-                                    $ShopName = $row["FName"] . ' ' .$row["LName"];
-                                    $OrderID   = $row["OrderID"];
-									$DeliveryZoneID   = $row["DeliveryZoneID"];
-                                    $ShopLogo = $row["PersonalPhoto"];
-									$Money = $row["Money"];
-									$CreatedAtDriverRevTransaction = $row["CreatedAtDriverRevTransaction"];
-            
-                                    $res2 = mysqli_query($con,"SELECT * FROM DeliveryZone WHERE DeliveryZoneID =  $DeliveryZoneID");
-									while($row2 = mysqli_fetch_assoc($res2)){ $CityNAme =  $row2["CityName"]; }
-								
-                                ?>
-            
-                           
-                                     
-                                   <tr>
-                                       <td class="image-col col-blue1 "> <img width="30px" src="<?php echo $ShopLogo; ?>"> <a href="shop-profile.php?id=<?php echo $ShopID ?>"> <?php echo $ShopName; ?> </a>  </td>
-                                       <td class="col-grey1 text-center"> <?php echo $OrderID; ?> </td>
-									   <td class="col-grey1 text-center"> <?php echo $CityNAme; ?> </td>
-									   <td class="col-grey1 text-center"> <?php echo $Money; ?> MAD </td>
-									   <td class="col-grey1 text-center"> <?php echo $CreatedAtDriverRevTransaction; ?> </td>
-									   <td class="col-grey1 text-center"> Show details </td>
-                                    </tr>								
-
-                            <?php 
-                                
-                                
-                            } 
-                            
-                            ?>                                                 
-                                   
-                                 </tbody>
-                              </table>
-                           </div>
-                        </div>
-                        <div class="block-element m-b-40">
-                           <div class="custom-pagination">
-                              <h5> Showing <?php echo $Page; ?> to 10  </h5>
-                              <ul>
-                                 <li> <a href="walletEradDelv.php?ShopName=<?php echo $ShopNamew ?>&Page=<?php echo $Page-1 ?>&CityName=<?php echo $CityName ?>&cityID=<?php echo $cityID ?>"> <i class="fa fa-angle-left"> </i> </a> </li>
-                                 <li> <a href="#" class="active"> <?php echo $Page+1 ?> </a> </li>
-                                 <li> <a href="walletEradDelv.php?ShopName=<?php echo $ShopNamew ?>&Page=<?php echo $Page+1 ?>&CityName=<?php echo $CityName ?>&cityID=<?php echo $cityID ?>"> <i class="fa fa-angle-right"> </i> </a> </li>
-                              </ul>
-                           </div>
-                        </div>
-                     </div>
-					 </div>
-  
-					
-				
-						 
-					 </div>
-					 <div class="col-md-4 col-lg-4 col-sm-4 col-12">
-					 
-					 
-					 
-					 	<div >
-								<div class="card" style="background: white; border-color:#3F6C8E;">
-								<div class="card-header">
-									<div class="card-title">Delivery revenues</div>
-								</div>
-								<div class="card-body">
-								    
-								     <?php
-                  $currentYear = date('Y');
-                  
-                  $M1 = 0 ;$M2 = 0 ;$M3 = 0 ;$M4 = 0 ; $M5 = 0 ;$M6 = 0 ;$M7 = 0 ;$M8 = 0 ; $M9 = 0 ;$M10 = 0 ;$M11 = 0 ;$M12 = 0 ;
-                                $res = mysqli_query($con,"SELECT MONTH(CreatedAtDriverRevTransaction) AS Month, COUNT(*) AS TotalOrders FROM DriverRevTransaction WHERE YEAR(CreatedAtDriverRevTransaction) = '$currentYear' GROUP BY MONTH(CreatedAtDriverRevTransaction);");
-            
-                            $result = array();
-                            while($row = mysqli_fetch_assoc($res)){
-                             
-                             if($row["Month"]==1){$M1 = $row["TotalOrders"];} if($row["Month"]==2){$M2 = $row["TotalOrders"];}if($row["Month"]==3){$M3 = $row["TotalOrders"];}if($row["Month"]==4){$M4 = $row["TotalOrders"];}
-                             if($row["Month"]==5){$M5 = $row["TotalOrders"];} if($row["Month"]==6){$M6 = $row["TotalOrders"];}if($row["Month"]==7){$M7 = $row["TotalOrders"];}if($row["Month"]==8){$M8 = $row["TotalOrders"];}
-                             if($row["Month"]==9){$M9 = $row["TotalOrders"];} if($row["Month"]==10){$M10 = $row["TotalOrders"];}if($row["Month"]==11){$M11 = $row["TotalOrders"];}if($row["Month"]==12){$M12 = $row["TotalOrders"];}
-
-                             
-                              }
-                              
-                     
-                    ?>            
-								    
-									
-									<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
-
-                                        <script>
-                                        const xValues = ["jun","Feb","March","Apr","May","Jun","July","Aug","Sep","Oct","Nov","Dec"];
-                                        
-                                        new Chart("myChart", {
-                                          type: "line",
-                                          data: {
-                                            labels: xValues,
-                                            datasets: [{ 
-                                              data: [<?php echo $M1 ?>,<?php echo $M2 ?>,<?php echo $M3 ?>,<?php echo $M4 ?>,<?php echo $M5 ?>,<?php echo $M6 ?>,<?php echo $M7 ?>,<?php echo $M8 ?>,<?php echo $M9 ?>,<?php echo $M10 ?>,<?php echo $M11 ?>,<?php echo $M12 ?>],
-                                              borderColor: '#5051f8',
-                                              fill: false
-                                            }]
-                                          },
-                                          options: {
-                                            legend: {display: false}
-                                          }
-                                        });
-                                        </script>
-									
-									
-								</div>
-							</div>
-						</div>
-						
-						 <div >
-                        <div class="custom-block1 height-box1">
-                           <div class="block-element">
-                              <div class="sec-head1">
-                                 <h4 class="col-green1"> Delivery revenues </h4>
-                                 <select name="forma" onchange="location = this.value;">
-									<?php if($day=="Today"||$day==""){ ?>
-                                    <option value="walletErad.php?day=Today" selected> Today </option>
-									<?php }else{ ?>
-									<option value="index.php?day=Today"> Today </option>
-									<?php } ?>
-									<?php if($day=="Month"){ ?>
-                                    <option value="walletErad?day=Month" selected> Month </option>
-									<?php }else{ ?>
-									<option value="walletErad?day=Month" > Month </option>
-									<?php } ?>
-									<?php if($day=="Year"){ ?>
-                                    <option value="walletErad?day=Year" selected> Year </option>
-									<?php }else{ ?>
-									<option value="walletErad?day=Year"> Year </option>
-									<?php } ?>
-                                 </select>
-								 <select name="forma" onchange="location = this.value;">
-											<?php                 require "conn.php";
-
-                                    
-                                     $res = mysqli_query($con,"SELECT * FROM DeliveryZone");
-
-                                        $result = array();
-                        
-                                        while($row = mysqli_fetch_assoc($res)){
-                                    
-                                    ?> 
-									
-										<option value="#"> <?php echo $row["CityName"]; ?> </option>
-
-										<?php } ?>
-                                     
-								 </select>
-                              </div>
-                           </div>
-                           <div class="block-element">
-                              <div class="profit-block profit-bg1">
-                                 <img src="images/profit-icon1.png">
-                                 <h6 class="col-green2"> Added value  </h6>
-								 
-								 <?php                 require "conn.php";
-
-                                    
-                                     $res = mysqli_query($con,"SELECT DriverCommesion FROM MoneyStop");
-
-                                        $result = array();
-                        
-                                        while($row = mysqli_fetch_assoc($res)){ $DriverCommesion = $row["DriverCommesion"]; }
-                                    
-                                    ?> 
-								   
-								 
-                                 <h4> <?php echo $DriverCommesion; ?> MAD</h4>
-                              </div>
-                              
-                           </div>
-                           <div class="block-element tags-holder" style="margin-top:10px;">
-                              <a href="" class="bg-blue1 tag-block"> <?php echo $DeliveryR; ?> MAD <span> Income </span> </a>	
-                           </div>
-                        </div>
-                     </div>
-					 
-					 
-					 </div>
-                  </div>
-                  <div class="row">
-                     <div class="col-md-6 col-lg-4 col-sm-12 col-12" style="display:none;">
-                        <div class="custom-block3">
-                           <div class="block-element">
-                              <div class="sec-head3">
-                                 <h4> Shops </h4>
-                                 <div class="search-form2">
-                                    <form>
-                                       <input type="text" placeholder="Search by Name Phone  Email Id" name="">   
-                                       <i class="fa fa-search"> </i>
-                                    </form>
-                                 </div>
-                                 <button class="custom-btn1"> See all </button>
-                              </div>
-                           </div>
-                           <div class="table-wrapper">
-                              <table class="table-1">
-                                 <thead>
-                                    <tr>
-                                       <th > Name </th>
-                                       <th class="text-center"> Withdrawal request</th>
-                                       <th class="text-center"> ShopID </th>
-									   <th class="text-center"> Date </th>
-                                    </tr>
-                                 </thead>
-                                 <tbody>
-                                     <?php
-                                    require "conn.php";
-                                        $res = mysqli_query($con,"SELECT * FROM ShopTransaction JOIN Shops ON ShopTransaction.ShopID = Shops.ShopID order by ShopTransaction.ShopID desc limit 0,10");
-                                    
-            
-                            $result = array();
-            
-                            while($row = mysqli_fetch_assoc($res)){
-                                
-                                
-                                    $ShopName = $row["ShopName"];
-                                    $ShopID   = $row["ShopID"];
-                                    $ShopLogo = $row["ShopLogo"];
-									$GetPaidMoney = $row["GetPaidMoney"];
-									$CreatedAtShopTransaction = $row["CreatedAtShopTransaction"];
-            
-                                ?>
-                                    <tr>
-                                       <td class="image-col col-blue1"> <img src="<?php echo $ShopLogo; ?>">  <?php echo $ShopName ?>  </td>
-                                       <td class="col-grey1 text-center"> <?php echo $GetPaidMoney; ?> MAD </td>
-                                       <td class="status-col1 text-center">  <?php echo $ShopID; ?> </td>
-									   <td class="status-col1 text-center">  <?php echo $CreatedAtShopTransaction; ?> </td>
-                                    </tr>
-                                 <?php 
-                                
-                                
-                            } 
-                            
-                            ?>        
-                                 </tbody>
-                              </table>
-                           </div>
-                        </div>
-                        <div class="block-element m-b-40">
-                           <div class="custom-pagination">
-                              <h5> Showing 1 to 10 of 1,384,485 entries </h5>
-                              <ul>
-                                 <li> <a href=""> <i class="fa fa-angle-left"> </i> </a> </li>
-                                 <li> <a href="" class="active"> 1 </a> </li>
-                                 <li> <a href=""> <i class="fa fa-angle-right"> </i> </a> </li>
-                              </ul>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-md-6 col-lg-4 col-sm-12 col-12" style="display:none;">
-                        <div class="custom-block1">
-                           <div class="block-element">
-                              <div class="sec-head1">
-                                 <h4 class="col-green1"> Profiles </h4>
-                                 <select>
-                                    <option> Date </option>
-                                    <option> Date </option>
-                                    <option> Date </option>
-                                 </select>
-                              </div>
-                           </div>
-                           <div class="block-element">
-                              <div class="profit-block profit-bg1">
-                                 <img src="images/profit-icon1.png">
-                                 <h6 class="col-green2"> Subscriptions </h6>
-                                 <h4> 0 MAD </h4>
-                              </div>
-                              <div class="profit-block profit-bg2">
-                                 <img src="images/profit-icon2.png">
-                                 <h6 class="col-green3"> Commissions </h6>
-                                 <h4> 0 MAD </h4>
-                              </div>
-                              <div class="profit-block profit-bg3">
-                                 <img src="images/profit-icon3.png">
-                                 <h6 class="col-purple1"> Jibler ADS </h6>
-                                 <h4> 0 MAD </h4>
-                              </div>
-                              <div class="profit-block profit-bg4">
-                                 <img src="images/profit-icon4.png">
-                                 <h6 class="col-purple2"> Jibler Pay </h6>
-                                 <h4> 0 MAD </h4>
-                              </div>
-                              <div class="profit-block profit-bg5">
-                                 <img src="images/profit-icon5.png">
-                                 <h6 class="col-red1"> Total </h6>
-                                 <h4> 0 MAD </h4>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </section>
-            <!-- Main Content Section Ends Here -->
-         </main>
-         <!-- Right Section Ends Here -->
-      </section>
-      <!-- Bootstrap Javascript -->
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-      <script src="js/bootstrap.min.js"> </script>
-      <!-- Chart JS -->
-      <script src="https://cdn2.hubspot.net/hubfs/476360/Chart.js"></script>
-      <script src="https://cdn2.hubspot.net/hubfs/476360/utils.js"></script>
-      <script src="js/functions.js"> </script>
-   </body>
+</body>
 </html>

@@ -108,6 +108,34 @@ if($resDrivers) {
         .page-btn { padding: 8px 16px; border-radius: 10px; background: var(--bg-app); color: var(--text-dark); text-decoration: none; transition: 0.2s; font-weight: 700; border: 1px solid var(--border-color); }
         .page-btn:hover { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
         .page-btn.disabled { opacity: 0.5; pointer-events: none; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .kpi-master { flex-direction: column; align-items: flex-start; gap: 10px; padding: 22px; margin-bottom: 16px; border-radius: 16px; }
+            .kpi-master h1 { font-size: 28px; }
+            .sub-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+            .sn-btn { padding: 14px 10px; border-radius: 12px; }
+            .sn-btn h2 { font-size: 15px; }
+            .sn-btn h3 { font-size: 11px; }
+            .table-container { padding: 16px; border-radius: 14px; }
+            .table-head { flex-wrap: wrap; gap: 10px; }
+            .search-box { width: 100%; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; }
+            .pagination { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+        @media (max-width: 600px) {
+            .sub-nav { grid-template-columns: 1fr; }
+            /* Hide Date Joined col */
+            table thead tr th:nth-child(4),
+            table tbody tr td:nth-child(4) { display: none; }
+        }
     </style>
 </head>
 <body>

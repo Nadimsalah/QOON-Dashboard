@@ -138,6 +138,76 @@ $countries_res = mysqli_query($con, "SELECT * FROM Countries");
 
         .doc-btn { padding: 8px 14px; border-radius: 10px; background: var(--bg-white); border: 1px solid var(--border-color); color: var(--text-dark); font-size: 13px; font-weight: 700; text-decoration: none; transition: 0.2s; cursor: pointer;}
         .doc-btn:hover { background: var(--accent-purple-light); color: var(--accent-purple); border-color: var(--accent-purple); }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+
+            /* Hide desktop sidebar rail */
+            .sidebar { display: none !important; }
+
+            .main-panel {
+                padding: 16px;
+                overflow-y: visible;
+                overflow-x: hidden;
+            }
+
+            /* Back button: full width feel */
+            .back-btn { font-size: 13px; padding: 9px 14px; margin-bottom: 16px; }
+
+            /* Identity banner: stack avatar + text */
+            .identity-banner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 20px;
+            }
+            .identity-avatar { width: 80px; height: 80px; border-radius: 18px; }
+            .identity-text h1 { font-size: 22px; }
+            .identity-text p  { font-size: 13px; }
+
+            /* Main grid: single column */
+            .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
+
+            /* Cards */
+            .card { padding: 20px; border-radius: 18px; }
+            .card-header { font-size: 15px; margin-bottom: 18px; }
+
+            /* Form input-row: single column */
+            .input-row { grid-template-columns: 1fr; gap: 0; }
+
+            /* Stat grid: 2 columns still fine on tablet */
+            .stat-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .stat-box { padding: 16px; }
+            .stat-box h3 { font-size: 20px; }
+
+            /* Push notification form: stack inputs */
+            .notif-form-row { flex-direction: column !important; gap: 10px !important; }
+            .notif-form-row input[name="PostTitle"] { width: 100% !important; }
+
+            /* Feed items */
+            .feed-item { padding: 12px; }
+            .feed-text h6 { font-size: 13px; }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .main-panel { padding: 12px; }
+
+            .identity-avatar { width: 68px; height: 68px; }
+            .identity-text h1 { font-size: 19px; }
+
+            /* Stat grid: full single column on tiny phones */
+            .stat-grid { grid-template-columns: 1fr; gap: 10px; }
+            .stat-box h3 { font-size: 22px; }
+
+            /* Doc buttons stack */
+            .feed-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+            .card { padding: 16px; }
+        }
+
     </style>
 </head>
 <body>
@@ -287,7 +357,7 @@ $countries_res = mysqli_query($con, "SELECT * FROM Countries");
                         <form method="POST" action="notificationsSendNotfToDriversID.php" style="background:#F8F9FA; padding:20px; border-radius:16px; border:1px solid var(--border-color);">
                             <h5 style="font-size:13px; font-weight:700; color:var(--text-dark); margin-bottom:12px; text-transform:uppercase;">Push Notification</h5>
                             <input type="hidden" name="DriverID" value="<?= $id ?>">
-                            <div style="display:flex; gap:10px;">
+                            <div style="display:flex; gap:10px;" class="notif-form-row">
                                 <input type="text" name="PostTitle" placeholder="Title" required style="width:30%; padding:10px; border-radius:8px; border:1px solid var(--border-color); outline:none;">
                                 <input type="text" name="Message" placeholder="Message content..." required style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); outline:none;">
                                 <button type="submit" style="background:var(--accent-purple); color:#FFF; border:none; padding:10px 15px; border-radius:8px; font-weight:700; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>

@@ -21,12 +21,10 @@ $FoodID = $_POST["ProdId"];
 
   $photo1name="w-".rand();
 
-  $path = "dash/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
  
   $actualpath = "https://qoon.app/$path";
- 
-  $path = "photo/$photo1name.png";
  
   if($_FILES["Photo"]["tmp_name"]==""){
 	  

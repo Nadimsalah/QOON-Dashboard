@@ -130,7 +130,26 @@ if($resDrivers) {
         .part-node:hover { color:var(--accent-purple); }
         .part-node img { width: 35px; height: 35px; border-radius: 8px; object-fit: cover; }
         .rev-amt { font-size: 16px; font-weight: 800; color: var(--accent-red); }
-        
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .kpi-master { flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px; margin-bottom: 16px; border-radius: 16px; }
+            .kpi-master h1 { font-size: 28px; }
+            .warn-alert { margin-bottom: 16px; }
+            .table-container { padding: 16px; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; }
+        }
+        @media (max-width: 600px) {
+            /* Hide Join Date col */
+            table thead tr th:nth-child(4),
+            table tbody tr td:nth-child(4) { display: none; }
+        }
     </style>
 </head>
 <body>

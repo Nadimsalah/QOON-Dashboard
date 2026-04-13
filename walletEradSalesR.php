@@ -116,6 +116,34 @@ if($resSales) {
         .page-btn.disabled { opacity: 0.5; pointer-events: none; }
 
         .badge-cut { font-size:12px; font-weight:800; background:rgba(245, 158, 11, 0.1); color:var(--accent-orange); padding:4px 10px; border-radius:8px; display:inline-block; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .kpi-master { flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px; margin-bottom: 16px; border-radius: 16px; }
+            .kpi-master h1 { font-size: 28px; }
+            /* 3-col channel cards → 2-col */
+            .rev-channels { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .channel-card { padding: 14px; }
+            .table-container { padding: 16px; border-radius: 14px; }
+            .table-head { flex-wrap: wrap; gap: 10px; }
+            .search-box { width: 100%; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; }
+            .pagination { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+        @media (max-width: 600px) {
+            /* 2-col → 1-col for channel cards */
+            .rev-channels { grid-template-columns: 1fr; }
+            /* Hide Cleared Date col */
+            table thead tr th:nth-child(5),
+            table tbody tr td:nth-child(5) { display: none; }
+        }
     </style>
 </head>
 <body>

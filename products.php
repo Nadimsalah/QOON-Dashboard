@@ -194,6 +194,25 @@ if ($id) {
         .a-del:hover { background: var(--accent-red); color: #FFF; }
 
         .empty-state { text-align: center; padding: 60px 20px; color: var(--text-gray); font-weight: 600; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .panel-header { flex-wrap: wrap; gap: 10px; }
+            .glass-panel { padding: 20px; }
+            .prod-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+        }
+        @media (max-width: 600px) {
+            .prod-grid { grid-template-columns: 1fr; gap: 12px; }
+            .prod-card { padding: 16px; }
+            .p-img { height: 140px; border-radius: 10px; }
+            .btn-primary { font-size: 13px; padding: 10px 16px; }
+        }
     </style>
 </head>
 <body>

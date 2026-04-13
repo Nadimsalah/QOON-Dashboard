@@ -92,6 +92,31 @@ if($resTx) {
         .page-btn { padding: 8px 16px; border-radius: 10px; background: var(--bg-app); color: var(--text-dark); text-decoration: none; transition: 0.2s; font-weight: 700; border: 1px solid var(--border-color); }
         .page-btn:hover { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
         .page-btn.disabled { opacity: 0.5; pointer-events: none; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+            .table-container { padding: 16px; border-radius: 16px; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; font-size: 13px; }
+            .pagination { flex-direction: column; gap: 12px; align-items: flex-start; }
+        }
+        @media (max-width: 600px) {
+            /* Hide Timestamp + Participants cols — keep Order ID, Details, Revenue */
+            table thead tr th:nth-child(2),
+            table thead tr th:nth-child(3),
+            table tbody tr td:nth-child(2),
+            table tbody tr td:nth-child(3) { display: none; }
+
+            th { font-size: 10px; }
+            td { font-size: 13px; padding: 10px 8px; }
+            .tx-id { font-size: 11px; }
+        }
     </style>
 </head>
 <body>
@@ -149,7 +174,7 @@ if($resTx) {
                                 </div>
                             </td>
                             <td>
-                                <div style="display:flex; align-items:center; justify-content:space-between; gap:15px; width:300px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; max-width:300px;">
                                     <span style="display:inline-block; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="<?= $safeDetails ?>">
                                         <?= $safeDetails ?>
                                     </span>

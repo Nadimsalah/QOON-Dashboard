@@ -1,256 +1,549 @@
-<?php require "conn.php"; ?>
+<?php
+require "conn.php";
+mysqli_set_charset($con, "utf8mb4");
+
+$tab = $_GET['tab'] ?? 'users';
+
+// Audience counts
+$totalUsers   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Users"))['c'] ?? 0;
+$noOrderUsers = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Users WHERE UserOrdersNum = 0"))['c'] ?? 0;
+$activeUsers  = $totalUsers - $noOrderUsers;
+
+$totalShops   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Shops"))['c'] ?? 0;
+$totalDrivers = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) as c FROM Drivers"))['c'] ?? 0;
+
+// History — last 30
+$historyQ = mysqli_query($con, "
+    SELECT N.*, A.AdminName
+    FROM NotificationsSentByAdmin N
+    JOIN Admin A ON N.AdminID = A.AdminID
+    ORDER BY N.CreatedAtNotificationsSentByAdmin DESC
+    LIMIT 30
+");
+$history = [];
+while ($row = mysqli_fetch_assoc($historyQ)) $history[] = $row;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Messaging | QOON Client App</title>
+    <title>Push Notifications | QOON</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --bg-app: #F4F7FE;
-            --bg-white: #FFFFFF;
-            --text-dark: #2B3674;
-            --text-gray: #A3AED0;
-            --accent-purple: #4318FF;
-            --accent-purple-light: #F4F7FE;
-            --accent-green: #05CD99;
-            --accent-orange: #FFCE20;
-            --accent-red: #EE5D50;
-            --accent-blue: #3965FF;
-            --border-color: #E2E8F0;
-            --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+            --bg-master:  #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --border:     #E5E7EB;
+            --border-md:  #D1D5DB;
+            --text-strong:#111827;
+            --text-base:  #374151;
+            --text-muted: #6B7280;
+            --green-bg:   #ECFDF5; --green-text:  #059669;
+            --blue-bg:    #EFF6FF; --blue-text:   #2563EB;
+            --purple-bg:  #F5F3FF; --purple-text: #7C3AED;
+            --red-bg:     #FEF2F2; --red-text:    #DC2626;
+            --amber-bg:   #FFFBEB; --amber-text:  #D97706;
+            --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+        body { background:var(--bg-master); color:var(--text-base); display:flex; height:100vh; overflow:hidden; }
+        .layout-wrapper { display:flex; width:100%; height:100%; }
+        main.content-area { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+        main.content-area::-webkit-scrollbar { width:6px; }
+        main.content-area::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
-        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
+        /* Header */
+        .header-bar {
+            position:sticky; top:0; z-index:20;
+            background:rgba(255,255,255,0.92); backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border);
+            padding:18px 40px;
+            display:flex; justify-content:space-between; align-items:center;
+        }
+        .header-bar h1 { font-size:20px; font-weight:700; color:var(--text-strong); letter-spacing:-0.3px; }
+        .header-bar p  { font-size:13px; color:var(--text-muted); font-weight:500; margin-top:2px; }
 
-        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: 16px; box-shadow: var(--shadow-card); flex-shrink: 0;}
-        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
-        .breadcrumb i { color: var(--accent-purple); font-size: 18px; }
+        /* Audience tabs */
+        .aud-tabs { display:flex; gap:6px; background:var(--bg-master); padding:5px; border-radius:10px; }
+        .aud-tab {
+            display:flex; align-items:center; gap:7px;
+            padding:8px 18px; border-radius:7px;
+            font-size:13px; font-weight:600; color:var(--text-muted);
+            cursor:pointer; border:none; background:none;
+            font-family:'Inter',sans-serif; text-decoration:none;
+            transition:0.15s; white-space:nowrap;
+        }
+        .aud-tab:hover { background:rgba(255,255,255,0.7); color:var(--text-strong); }
+        .aud-tab.active { background:var(--bg-surface); color:var(--text-strong); box-shadow:var(--shadow-sm); }
 
-        .tab-menu { display: flex; gap: 15px; margin-bottom: 25px; }
-        .tab-btn { padding: 14px 24px; border-radius: 12px; font-weight: 700; font-size: 14px; color: var(--text-gray); background: transparent; border: none; cursor: pointer; transition: 0.3s ease; display:flex; align-items:center; gap:8px; border: 2px solid transparent; text-decoration:none;}
-        .tab-btn:hover { color: var(--accent-purple); background: var(--accent-purple-light); }
-        .tab-btn.active { background: var(--accent-purple); color: #FFF; box-shadow: 0 10px 20px rgba(67, 24, 255, 0.2); border-color: var(--accent-purple); pointer-events:none;}
+        /* Page body */
+        .page-body { padding:32px 40px; display:grid; grid-template-columns:1fr 380px; gap:28px; align-items:start; }
 
-        .layout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        /* Panel */
+        .panel { background:var(--bg-surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .panel-head { padding:18px 24px; border-bottom:1px solid var(--border); background:#F9FAFB; display:flex; justify-content:space-between; align-items:center; }
+        .panel-head h2 { font-size:15px; font-weight:700; color:var(--text-strong); }
+        .panel-body { padding:24px; }
 
-        .glass-card { background: var(--bg-white); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color); }
-        .card-header { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 25px; display:flex; align-items:center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom:15px; }
+        /* Audience stat cards */
+        .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:24px; }
+        .stat-card { padding:16px; border-radius:10px; border:1px solid var(--border); display:flex; flex-direction:column; gap:4px; cursor:pointer; transition:0.15s; }
+        .stat-card:hover { box-shadow:var(--shadow-md); }
+        .stat-card.selected { border-width:2px; }
+        .stat-card .sc-val { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+        .stat-card .sc-lbl { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
 
-        .premium-table { width: 100%; border-collapse: collapse; }
-        .premium-table th { padding: 15px; text-align: left; font-size: 12px; font-weight: 800; color: var(--text-gray); text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-        .premium-table td { padding: 15px; font-size: 14px; font-weight: 600; color: var(--text-dark); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        .premium-table tr:hover td { background: var(--bg-app); }
+        /* Form */
+        .inp-group { display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+        .inp-group label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; }
+        .inp-field, .inp-textarea, .inp-select {
+            padding:11px 14px; border:1px solid var(--border); border-radius:8px;
+            font-size:14px; font-weight:500; color:var(--text-strong);
+            background:var(--bg-surface); outline:none; transition:0.2s;
+            box-shadow:var(--shadow-sm); width:100%; font-family:'Inter',sans-serif;
+        }
+        .inp-field:focus, .inp-textarea:focus, .inp-select:focus {
+            border-color:var(--border-md); box-shadow:0 0 0 3px rgba(17,24,39,0.06);
+        }
+        .inp-textarea { min-height:110px; resize:vertical; }
+        .inp-select { cursor:pointer; }
 
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; }
-        .form-control { width: 100%; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; font-size: 14px; font-weight: 600; color: var(--text-dark); outline:none; transition:0.3s; }
-        .form-control:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 4px var(--accent-purple-light); background: #FFF; }
-        textarea.form-control { min-height: 120px; resize: vertical; }
+        /* Range slider */
+        .range-section { background:#F9FAFB; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:18px; display:none; }
+        .range-section.visible { display:block; }
+        .range-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.4px; }
+        .range-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .range-val-row { display:flex; justify-content:space-between; margin-top:8px; }
+        .range-val-row span { font-size:12px; font-weight:700; color:var(--text-strong); }
+        input[type=range] { width:100%; accent-color:var(--text-strong); height:5px; }
 
-        .btn-submit { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; padding: 16px; background: var(--text-dark); color: #FFF; font-weight: 800; font-size: 15px; border-radius: 14px; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(43, 54, 116, 0.2); }
-        .btn-submit:hover { background: var(--accent-purple); color: #FFF; transform: translateY(-2px); box-shadow: 0 15px 25px rgba(67, 24, 255, 0.3); }
+        /* Char counter */
+        .char-row { display:flex; justify-content:space-between; align-items:center; }
+        #charCount { font-size:11px; font-weight:600; color:var(--text-muted); }
+        #charCount.warn { color:var(--amber-text); }
 
-        .inner-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: var(--bg-app); padding: 5px; border-radius: 14px; }
-        .inner-tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--text-gray); cursor: pointer; transition: 0.2s; }
-        .inner-tab.active { background: #FFF; color: var(--accent-purple); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        /* Preview phone card */
+        .phone-preview {
+            background:#F9FAFB; border:1px solid var(--border); border-radius:12px;
+            padding:20px; margin-bottom:18px;
+        }
+        .pp-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:12px; }
+        .pp-notif {
+            background:#fff; border-radius:12px; padding:14px; border:1px solid var(--border);
+            box-shadow:var(--shadow-sm); display:flex; align-items:flex-start; gap:12px;
+        }
+        .pp-icon { width:36px; height:36px; border-radius:9px; background:var(--text-strong); display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff; flex-shrink:0; }
+        .pp-title { font-size:13px; font-weight:700; color:var(--text-strong); }
+        .pp-body  { font-size:12px; font-weight:500; color:var(--text-muted); margin-top:2px; }
+        .pp-time  { font-size:11px; font-weight:600; color:#9CA3AF; margin-top:4px; }
 
-        .range-wrap { position: relative; height: 30px; margin-top: 15px; }
-        .range-wrap input[type=range] { position: absolute; width: 100%; pointer-events: none; -webkit-appearance: none; background: transparent; }
-        .range-wrap input[type=range]::-webkit-slider-thumb { pointer-events: all; position: relative; z-index: 10; -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--accent-purple); cursor: pointer; box-shadow: 0 0 10px rgba(67,24,255,0.4); margin-top:-8px;}
-        .range-wrap input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: var(--border-color); border-radius: 4px; border: none; }
-        
-        /* SIDEBAR SUPPORT */
-        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
-        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
-        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .nav-item i, .nav-item img { width: 22px; text-align: center; }
-        .nav-item:hover, .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
-        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
+        /* Submit button */
+        .btn-send {
+            display:flex; align-items:center; justify-content:center; gap:10px;
+            width:100%; padding:13px 24px; border-radius:9px;
+            background:var(--text-strong); color:#fff;
+            font-size:14px; font-weight:700; border:none; cursor:pointer;
+            font-family:'Inter',sans-serif; transition:0.2s; box-shadow:var(--shadow-sm);
+        }
+        .btn-send:hover { background:#1F2937; box-shadow:var(--shadow-md); transform:translateY(-1px); }
+        .btn-send i { font-size:15px; }
+
+        /* History table */
+        .hist-table { width:100%; border-collapse:collapse; }
+        .hist-table th { padding:12px 16px; text-align:left; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid var(--border); }
+        .hist-table td { padding:14px 16px; font-size:13px; font-weight:500; color:var(--text-base); border-bottom:1px solid var(--border); vertical-align:middle; }
+        .hist-table tr:last-child td { border-bottom:none; }
+        .hist-table tr:hover td { background:#FAFAFA; }
+        .tid { font-size:11px; font-weight:700; background:var(--bg-master); padding:3px 8px; border-radius:5px; color:var(--text-strong); }
+        .htitle { font-weight:700; color:var(--text-strong); }
+        .hbody  { max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text-muted); }
+        .type-pill { font-size:10px; font-weight:700; text-transform:uppercase; padding:3px 9px; border-radius:20px; }
+        .type-ALL    { background:var(--green-bg);  color:var(--green-text); }
+        .type-NO_ORDERS { background:var(--amber-bg); color:var(--amber-text); }
+        .type-HAS_ORDERS { background:var(--blue-bg); color:var(--blue-text); }
+        .type-SINGLE { background:var(--purple-bg); color:var(--purple-text); }
+        .hdate { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+        .author-chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; }
+        .author-av { width:22px; height:22px; border-radius:6px; background:var(--text-strong); color:#fff; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; }
+        .btn-del { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; }
+        .btn-del:hover { color:var(--red-text); }
+
+        /* Empty state */
+        .empty-row td { text-align:center; padding:48px; color:var(--text-muted); }
+        .empty-row i { font-size:32px; color:var(--border); display:block; margin-bottom:8px; }
+
+        /* Confirm overlay */
+        .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:300; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+        .confirm-overlay.open { display:flex; }
+        .confirm-box { background:var(--bg-surface); border-radius:16px; padding:28px; max-width:420px; width:calc(100% - 40px); box-shadow:0 25px 50px rgba(0,0,0,0.15); border:1px solid var(--border); text-align:center; }
+        .confirm-box h3 { font-size:18px; font-weight:700; color:var(--text-strong); margin-bottom:8px; }
+        .confirm-box p  { font-size:14px; color:var(--text-muted); font-weight:500; margin-bottom:24px; }
+        .confirm-actions { display:flex; gap:10px; }
+        .btn-cancel { flex:1; padding:11px; border-radius:8px; border:1px solid var(--border); background:var(--bg-surface); font-size:14px; font-weight:600; color:var(--text-muted); cursor:pointer; font-family:'Inter',sans-serif; transition:0.15s; }
+        .btn-cancel:hover { background:#F3F4F6; }
+        .btn-confirm-send { flex:1; padding:11px; border-radius:8px; border:none; background:var(--text-strong); color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; transition:0.15s; }
+        .btn-confirm-send:hover { background:#1F2937; }
+
+        @media (max-width:1100px) { .page-body { grid-template-columns:1fr; } }
+        @media (max-width:700px)  { .stat-row { grid-template-columns:1fr 1fr; } .header-bar { padding:16px 20px; } .page-body { padding:20px; } }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .layout-wrapper { flex-direction: column; height: auto; overflow: visible; }
+            .sb-container { display: none !important; }
+            main.content-area { overflow-y: visible; }
+
+            .header-bar { flex-wrap: wrap; gap: 12px; padding: 14px 16px; }
+            .aud-tabs { flex-wrap: wrap; }
+
+            .page-body { padding: 16px 16px 80px; gap: 16px; }
+            .panel-body { padding: 16px; }
+        }
+        @media (max-width: 600px) {
+            .stat-row { grid-template-columns: 1fr; }
+            .stat-card .sc-val { font-size: 20px; }
+            .range-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-envelope">
-        <?php include 'sidebar.php'; ?>
+<div class="layout-wrapper">
+    <?php include 'sidebar.php'; ?>
 
-        <main class="main-panel">
-            <header class="header">
-                <div class="breadcrumb">
-                    <i class="fas fa-satellite-dish"></i> 
-                    <span>Cloud Messaging System / QOON Client App</span>
+    <main class="content-area">
+
+        <!-- Header -->
+        <header class="header-bar">
+            <div>
+                <h1>Push Notifications</h1>
+                <p>Broadcast messages to your users, shops and drivers.</p>
+            </div>
+            <!-- Audience tabs -->
+            <div class="aud-tabs">
+                <a href="notifications.php?tab=users"   class="aud-tab <?= $tab=='users'   ? 'active':'' ?>"><i class="fas fa-user-group"></i>Users</a>
+                <a href="notifications.php?tab=shops"   class="aud-tab <?= $tab=='shops'   ? 'active':'' ?>"><i class="fas fa-store"></i>Shops</a>
+                <a href="notifications.php?tab=drivers" class="aud-tab <?= $tab=='drivers' ? 'active':'' ?>"><i class="fas fa-motorcycle"></i>Drivers</a>
+            </div>
+        </header>
+
+        <div class="page-body">
+
+            <!-- LEFT: History Log -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h2><i class="fas fa-history" style="margin-right:8px;font-size:13px;color:var(--text-muted);"></i>Broadcast History</h2>
+                    <span style="font-size:11px;font-weight:700;color:var(--green-text);background:var(--green-bg);padding:4px 10px;border-radius:20px;"><?= count($history) ?> records</span>
                 </div>
-            </header>
-
-            <div class="tab-menu">
-                <a href="notifications.php" class="tab-btn active"><i class="fas fa-users"></i> QOON</a>
-                <a href="notificationsPartner.php" class="tab-btn"><i class="fas fa-store"></i> QOON Seller</a>
-                <a href="notificationsDriver.php" class="tab-btn"><i class="fas fa-motorcycle"></i> QOON Express</a>
+                <div style="overflow-x:auto;">
+                    <table class="hist-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Message</th>
+                                <th>Audience</th>
+                                <th>Sent</th>
+                                <th>By</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($history)): ?>
+                            <tr class="empty-row"><td colspan="7"><i class="fas fa-bell-slash"></i>No notifications sent yet.</td></tr>
+                            <?php else: foreach ($history as $h): ?>
+                            <tr id="nrow-<?= $h['NotificationsSentByAdminID'] ?>">
+                                <td><span class="tid">#<?= $h['NotificationsSentByAdminID'] ?></span></td>
+                                <td class="htitle"><?= htmlspecialchars($h['Title']) ?></td>
+                                <td><div class="hbody" title="<?= htmlspecialchars($h['Bodyy']) ?>"><?= htmlspecialchars($h['Bodyy']) ?></div></td>
+                                <td>
+                                    <?php
+                                    $typeClass = 'type-' . ($h['Type'] ?? 'ALL');
+                                    $typeLabel = match($h['Type'] ?? '') {
+                                        'ALL'        => 'All Users',
+                                        'NO_ORDERS'  => 'No Orders',
+                                        'HAS_ORDERS' => 'Active Buyers',
+                                        default      => $h['Type'] ?? '—'
+                                    };
+                                    ?>
+                                    <span class="type-pill <?= $typeClass ?>"><?= $typeLabel ?></span>
+                                </td>
+                                <td class="hdate"><i class="far fa-clock" style="margin-right:4px;"></i><?= date('M d, H:i', strtotime($h['CreatedAtNotificationsSentByAdmin'])) ?></td>
+                                <td>
+                                    <div class="author-chip">
+                                        <div class="author-av"><?= strtoupper(substr($h['AdminName'], 0, 1)) ?></div>
+                                        <?= htmlspecialchars($h['AdminName']) ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn-del" title="Delete" onclick="deleteNotif(<?= $h['NotificationsSentByAdminID'] ?>, this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <?php endforeach; endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <div class="layout-grid">
-                
-                <!-- Left: History Log -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div><i class="fas fa-history" style="color:var(--accent-purple); margin-right:8px;"></i> Broadcast History</div>
-                        <span style="font-size:12px; color:var(--text-gray); background:var(--bg-app); padding:4px 10px; border-radius:8px;">Live Auto-Sync</span>
+            <!-- RIGHT: Composer -->
+            <div style="display:flex; flex-direction:column; gap:16px;">
+
+                <!-- Audience overview -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2><i class="fas fa-bullseye" style="margin-right:8px;font-size:13px;color:var(--text-muted);"></i>Audience Overview</h2>
                     </div>
-                    
-                    <div style="overflow-x:auto;">
-                        <table class="premium-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Title</th>
-                                    <th>Message Body</th>
-                                    <th>Dispatched</th>
-                                    <th>Target</th>
-                                    <th>Author</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $res = mysqli_query($con,"SELECT NotificationsSentByAdmin.*,Admin.AdminName FROM NotificationsSentByAdmin JOIN Admin ON NotificationsSentByAdmin.AdminID = Admin.AdminID ORDER BY CreatedAtNotificationsSentByAdmin DESC LIMIT 40"); 
-                                while($row = mysqli_fetch_assoc($res)){
-                                ?>
-                                <tr>
-                                    <td><span style="background:var(--bg-app); padding:4px 8px; border-radius:6px; font-weight:800; font-size:11px;">#<?php echo $row["NotificationsSentByAdminID"] ?></span></td>
-                                    <td style="font-weight:700; color:var(--accent-purple);"><?php echo $row["Title"] ?></td>
-                                    <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><?php echo $row["Bodyy"] ?></td>
-                                    <td><i class="far fa-clock" style="color:var(--text-gray);"></i> <?php echo date('M d, H:i', strtotime($row["CreatedAtNotificationsSentByAdmin"])) ?></td>
-                                    <td><span style="background:rgba(57, 101, 255, 0.1); color:var(--accent-blue); padding:4px 10px; border-radius:20px; font-size:10px; font-weight:800; text-transform:uppercase;"><?php echo $row["Type"] ?></span></td>
-                                    <td><?php echo $row["AdminName"] ?></td>
-                                </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
+                    <div class="panel-body">
+                        <?php if ($tab === 'users'): ?>
+                        <div class="stat-row">
+                            <div class="stat-card" onclick="setAudience('ALL')" id="sc-all" style="border-color:#111827;background:#F9FAFB;">
+                                <div class="sc-val" style="color:#111827;"><?= number_format($totalUsers) ?></div>
+                                <div class="sc-lbl" style="color:var(--text-muted);">All Users</div>
+                            </div>
+                            <div class="stat-card" onclick="setAudience('HAS_ORDERS')" id="sc-has" style="border-color:var(--border);">
+                                <div class="sc-val" style="color:var(--blue-text);"><?= number_format($activeUsers) ?></div>
+                                <div class="sc-lbl" style="color:var(--text-muted);">Active Buyers</div>
+                            </div>
+                            <div class="stat-card" onclick="setAudience('NO_ORDERS')" id="sc-no" style="border-color:var(--border);">
+                                <div class="sc-val" style="color:var(--amber-text);"><?= number_format($noOrderUsers) ?></div>
+                                <div class="sc-lbl" style="color:var(--text-muted);">No Orders</div>
+                            </div>
+                        </div>
+                        <?php elseif ($tab === 'shops'): ?>
+                        <div class="stat-row" style="grid-template-columns:1fr;">
+                            <div class="stat-card selected" style="border-color:#111827;background:#F9FAFB;">
+                                <div class="sc-val" style="color:#111827;"><?= number_format($totalShops) ?></div>
+                                <div class="sc-lbl" style="color:var(--text-muted);">All Shops</div>
+                            </div>
+                        </div>
+                        <?php else: ?>
+                        <div class="stat-row" style="grid-template-columns:1fr;">
+                            <div class="stat-card selected" style="border-color:#111827;background:#F9FAFB;">
+                                <div class="sc-val" style="color:#111827;"><?= number_format($totalDrivers) ?></div>
+                                <div class="sc-lbl" style="color:var(--text-muted);">All Drivers</div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Right: Composer -->
-                <div class="glass-card" style="align-self: start;">
-                    <div class="card-header">
-                        <div><i class="fas fa-paper-plane" style="color:var(--accent-green); margin-right:8px;"></i> New Push Campaign</div>
+                <!-- Composer card -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2><i class="fas fa-paper-plane" style="margin-right:8px;font-size:13px;color:var(--text-muted);"></i>Compose Notification</h2>
                     </div>
+                    <div class="panel-body">
 
-                    <?php 
-                        $OrderNum = 0;
-                        $res = mysqli_query($con,"SELECT count(*) as c FROM Users");
-                        if($row = mysqli_fetch_assoc($res)) { $OrderNum = $row["c"]; }
-                    ?>
-                    
-                    <div class="inner-tabs">
-                        <div class="inner-tab active" onclick="switchForm('bulk')">Bulk Broadcast</div>
-                        <div class="inner-tab" onclick="switchForm('single')">Single Target ID</div>
-                    </div>
-
-                    <div style="background:var(--bg-app); border-radius:12px; padding:15px; margin-bottom:20px; display:flex; align-items:center; gap:15px;">
-                        <div style="background:var(--bg-white); width:40px; height:40px; border-radius:10px; display:flex; justify-content:center; align-items:center; font-size:20px; color:var(--accent-green); box-shadow:var(--shadow-card);"><i class="fas fa-users"></i></div>
-                        <div>
-                            <div style="font-size:12px; font-weight:700; color:var(--text-gray); text-transform:uppercase;">Total Accessible Audience</div>
-                            <div style="font-size:18px; font-weight:800; color:var(--text-dark);"><?= number_format($OrderNum) ?> Users</div>
-                        </div>
-                    </div>
-
-                    <!-- Bulk Form -->
-                    <form id="form-bulk" method="POST" action="SendNotfToallUsers.php" style="display:block;">
-                        <div class="form-group">
-                            <label>Audience Segmentation</label>
-                            <select class="form-control" name="UserTypes" id="UserTypes">
-                                <option value="ALL">Entire Active Database</option>
-                                <option value="HAS_ORDERS">Active Buyers</option>
-                                <option value="NO_ORDERS">Zero Orders (Lurkers)</option>
-                            </select>
-                        </div>
-                        
-                        <div id="ordersRange" style="display:none; background:#FFF; border:1px solid var(--accent-purple); padding:15px; border-radius:12px; margin-bottom:20px;">
-                            <label style="color:var(--accent-purple);"><i class="fas fa-filter"></i> Specify Order Volume Range</label>
-                            <div class="range-wrap">
-                                <input type="range" min="1" max="1000" value="1" name="rangeMin" id="rangeMin">
-                                <input type="range" min="1" max="1000" value="10" name="rangeMax" id="rangeMax">
-                            </div>
-                            <div style="display:flex; justify-content:space-between; margin-top:20px; font-size:13px; font-weight:700; color:var(--text-dark);">
-                                <div>Min: <span id="minVal" style="color:var(--accent-purple); font-weight:800; font-size:16px;">1</span></div>
-                                <div>Max: <span id="maxVal" style="color:var(--accent-purple); font-weight:800; font-size:16px;">10</span></div>
+                        <!-- Live preview -->
+                        <div class="phone-preview">
+                            <div class="pp-label">Live Preview</div>
+                            <div class="pp-notif">
+                                <div class="pp-icon"><i class="fas fa-bell"></i></div>
+                                <div>
+                                    <div class="pp-title" id="pp-title">Notification Title</div>
+                                    <div class="pp-body"  id="pp-body">Your message will appear here...</div>
+                                    <div class="pp-time">just now · QOON</div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Notification Headline</label>
-                            <input type="text" class="form-control" placeholder="Catchy title (Optional)" name="PostTitle">
-                        </div>
-                        <div class="form-group">
-                            <label>Marketing Copy</label>
-                            <textarea class="form-control" placeholder="Body of the notification..." name="Message" required></textarea>
-                        </div>
-                        <button type="submit" class="btn-submit"><i class="fas fa-rocket"></i> Dispatch Bulk Campaign</button>
-                    </form>
+                        <?php if ($tab === 'users'): ?>
+                        <!-- USERS form -->
+                        <form id="notifForm" onsubmit="confirmSend(event)" data-action="SendNotfToallUsers.php">
+                            <input type="hidden" name="UserTypes" id="hiddenUserTypes" value="ALL">
 
-                    <!-- Single Form -->
-                    <form id="form-single" method="POST" action="SendNotfToUserID.php" style="display:none;">
-                        <div class="form-group">
-                            <label>Target User ID Code</label>
-                            <input type="text" class="form-control" placeholder="e.g. 159982" name="UserID" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Notification Headline</label>
-                            <input type="text" class="form-control" placeholder="Catchy title (Optional)" name="PostTitle">
-                        </div>
-                        <div class="form-group">
-                            <label>Marketing Copy</label>
-                            <textarea class="form-control" placeholder="Body of the notification..." name="Message" required></textarea>
-                        </div>
-                        <button type="submit" class="btn-submit" style="background:var(--accent-purple);"><i class="fas fa-paper-plane"></i> Send Direct Message</button>
-                    </form>
+                            <div class="inp-group">
+                                <label>Target Audience</label>
+                                <select class="inp-select" id="userTypeSel" onchange="handleTypeChange(this.value)">
+                                    <option value="ALL">All Users (<?= number_format($totalUsers) ?>)</option>
+                                    <option value="HAS_ORDERS">Active Buyers — Order range</option>
+                                    <option value="NO_ORDERS">No Orders (<?= number_format($noOrderUsers) ?>)</option>
+                                </select>
+                            </div>
 
+                            <div class="range-section" id="rangeSection">
+                                <div class="range-label"><i class="fas fa-filter" style="margin-right:6px;"></i>Order count range</div>
+                                <div class="range-row">
+                                    <div class="inp-group" style="margin-bottom:0;">
+                                        <label>Min Orders</label>
+                                        <input class="inp-field" type="number" name="rangeMin" id="rangeMin" min="1" value="1">
+                                    </div>
+                                    <div class="inp-group" style="margin-bottom:0;">
+                                        <label>Max Orders</label>
+                                        <input class="inp-field" type="number" name="rangeMax" id="rangeMax" min="1" value="10">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="inp-group">
+                                <label>Title</label>
+                                <input type="text" class="inp-field" name="PostTitle" id="inpTitle" placeholder="e.g. Special offer today 🎉" maxlength="80" oninput="updatePreview()">
+                            </div>
+                            <div class="inp-group">
+                                <div class="char-row">
+                                    <label>Message Body</label>
+                                    <span id="charCount">0 / 200</span>
+                                </div>
+                                <textarea class="inp-textarea" name="Message" id="inpBody" placeholder="Write your message here..." maxlength="200" required oninput="updatePreview(); countChars()"></textarea>
+                            </div>
+                            <button type="submit" class="btn-send"><i class="fas fa-rocket"></i> Send to Users</button>
+                        </form>
+
+                        <?php elseif ($tab === 'shops'): ?>
+                        <!-- SHOPS form -->
+                        <form id="notifForm" onsubmit="confirmSend(event)" data-action="SendNotfToallUsers.php">
+                            <input type="hidden" name="UserTypes" value="SHOPS">
+                            <input type="hidden" name="rangeMin" value="0">
+                            <input type="hidden" name="rangeMax" value="9999">
+                            <div class="inp-group">
+                                <label>Title</label>
+                                <input type="text" class="inp-field" name="PostTitle" id="inpTitle" placeholder="e.g. New feature available 🚀" maxlength="80" oninput="updatePreview()">
+                            </div>
+                            <div class="inp-group">
+                                <div class="char-row">
+                                    <label>Message Body</label>
+                                    <span id="charCount">0 / 200</span>
+                                </div>
+                                <textarea class="inp-textarea" name="Message" id="inpBody" placeholder="Write your message here..." maxlength="200" required oninput="updatePreview(); countChars()"></textarea>
+                            </div>
+                            <button type="submit" class="btn-send"><i class="fas fa-store"></i> Send to Shops</button>
+                        </form>
+
+                        <?php else: ?>
+                        <!-- DRIVERS form -->
+                        <form id="notifForm" onsubmit="confirmSend(event)" data-action="SendNotfToallUsers.php">
+                            <input type="hidden" name="UserTypes" value="DRIVERS">
+                            <input type="hidden" name="rangeMin" value="0">
+                            <input type="hidden" name="rangeMax" value="9999">
+                            <div class="inp-group">
+                                <label>Title</label>
+                                <input type="text" class="inp-field" name="PostTitle" id="inpTitle" placeholder="e.g. New zone available 📍" maxlength="80" oninput="updatePreview()">
+                            </div>
+                            <div class="inp-group">
+                                <div class="char-row">
+                                    <label>Message Body</label>
+                                    <span id="charCount">0 / 200</span>
+                                </div>
+                                <textarea class="inp-textarea" name="Message" id="inpBody" placeholder="Write your message here..." maxlength="200" required oninput="updatePreview(); countChars()"></textarea>
+                            </div>
+                            <button type="submit" class="btn-send"><i class="fas fa-motorcycle"></i> Send to Drivers</button>
+                        </form>
+                        <?php endif; ?>
+
+                    </div>
                 </div>
             </div>
-        </main>
+
+        </div>
+    </main>
+</div>
+
+<!-- Confirm Modal -->
+<div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+        <div style="width:52px;height:52px;border-radius:14px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;color:#EF4444;">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <h3>Send Notification?</h3>
+        <p id="confirmDesc">This will send a push notification to the selected audience.</p>
+        <div class="confirm-actions">
+            <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+            <button class="btn-confirm-send" onclick="doSend()">Yes, Send Now</button>
+        </div>
     </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        function switchForm(type) {
-            document.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('form-bulk').style.display = 'none';
-            document.getElementById('form-single').style.display = 'none';
+<script>
+    let pendingForm = null;
 
-            if(type === 'bulk') {
-                document.querySelectorAll('.inner-tab')[0].classList.add('active');
-                document.getElementById('form-bulk').style.display = 'block';
-            } else {
-                document.querySelectorAll('.inner-tab')[1].classList.add('active');
-                document.getElementById('form-single').style.display = 'block';
-            }
-        }
+    // Live phone preview
+    function updatePreview() {
+        const title = document.getElementById('inpTitle')?.value || 'Notification Title';
+        const body  = document.getElementById('inpBody')?.value  || 'Your message will appear here...';
+        document.getElementById('pp-title').textContent = title;
+        document.getElementById('pp-body').textContent  = body;
+    }
 
-        $(function () {
-            $("#UserTypes").on("change", function () {
-                if ($(this).val() === "HAS_ORDERS") {
-                    $("#ordersRange").slideDown();
-                } else {
-                    $("#ordersRange").slideUp();
-                }
-            });
+    // Char counter
+    function countChars() {
+        const v = document.getElementById('inpBody')?.value?.length || 0;
+        const el = document.getElementById('charCount');
+        el.textContent = v + ' / 200';
+        el.classList.toggle('warn', v > 150);
+    }
 
-            $("#rangeMin, #rangeMax").on("input change", function () {
-                let min = parseInt($("#rangeMin").val());
-                let max = parseInt($("#rangeMax").val());
-
-                if (min > max) { let temp = min; min = max; max = temp; } // Swap logic
-
-                $("#minVal").text(min);
-                $("#maxVal").text(max);
-            });
+    // Audience type toggle (users tab)
+    function handleTypeChange(val) {
+        const rs = document.getElementById('rangeSection');
+        if (rs) rs.classList.toggle('visible', val === 'HAS_ORDERS');
+        const hid = document.getElementById('hiddenUserTypes');
+        if (hid) hid.value = val;
+        // Highlight stat card
+        ['sc-all','sc-has','sc-no'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.borderColor = 'var(--border)'; el.style.background = '';
         });
-    </script>
+        const map = { ALL:'sc-all', HAS_ORDERS:'sc-has', NO_ORDERS:'sc-no' };
+        const active = document.getElementById(map[val]);
+        if (active) { active.style.borderColor = '#111827'; active.style.background = '#F9FAFB'; }
+    }
+
+    function setAudience(type) {
+        const sel = document.getElementById('userTypeSel');
+        if (sel) { sel.value = type; handleTypeChange(type); }
+    }
+
+    // Confirm flow
+    function confirmSend(e) {
+        e.preventDefault();
+        pendingForm = e.target;
+        const title  = document.getElementById('inpTitle')?.value || '(no title)';
+        const selEl  = document.getElementById('userTypeSel');
+        const target = selEl ? selEl.options[selEl.selectedIndex]?.text : 'selected audience';
+        document.getElementById('confirmDesc').textContent =
+            `"${title}" will be sent to: ${target}. This cannot be undone.`;
+        document.getElementById('confirmOverlay').classList.add('open');
+    }
+    function closeConfirm() {
+        document.getElementById('confirmOverlay').classList.remove('open');
+        pendingForm = null;
+    }
+    function doSend() {
+        if (!pendingForm) return;
+        pendingForm.submit();
+    }
+    document.getElementById('confirmOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeConfirm();
+    });
+
+    // Delete notification row
+    async function deleteNotif(id, btn) {
+        if (!confirm('Delete this notification from history?')) return;
+        const row = document.getElementById('nrow-' + id);
+        row.classList.add('deleting');
+        try {
+            const fd = new FormData();
+            fd.append('id', id);
+            const res  = await fetch('ajax_delete_notification.php', { method:'POST', body: fd });
+            const data = await res.json();
+            if (data.ok) {
+                setTimeout(() => row.remove(), 300);
+            } else {
+                row.classList.remove('deleting');
+                alert('Could not delete.');
+            }
+        } catch(e) {
+            row.classList.remove('deleting');
+            alert('Network error.');
+        }
+    }
+</script>
 </body>
 </html>

@@ -1,234 +1,422 @@
-<?php require "conn.php"; 
-$AdminID = $_COOKIE["AdminID"] ?? '';
+<?php
+require "conn.php";
+$AdminID   = $_COOKIE["AdminID"]   ?? '';
 $AdminName = $_COOKIE["AdminName"] ?? '';
+
+$res = mysqli_query($con, "SELECT * FROM Admin");
+$staff = [];
+while($row = mysqli_fetch_assoc($res)) { $staff[] = $row; }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Accounts | QOON Admin</title>
+    <title>Staff Accounts | QOON</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="fontawesome-kit-5/css/all.css" rel="stylesheet">
-    <!-- Bootstrap Grids and Modals Support -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root {
-            --bg-app: #F4F7FE;
-            --bg-white: #FFFFFF;
-            --text-dark: #2B3674;
-            --text-gray: #A3AED0;
-            --accent-purple: #4318FF;
-            --accent-purple-light: #F4F7FE;
-            --accent-green: #05CD99;
-            --accent-red: #EE5D50;
-            --border-color: #E2E8F0;
-            --shadow-card: 0px 18px 40px rgba(112, 144, 176, 0.12);
+            --bg-master:  #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --border:     #E5E7EB;
+            --border-md:  #D1D5DB;
+            --text-strong:#111827;
+            --text-base:  #374151;
+            --text-muted: #6B7280;
+            --red-bg:     #FEF2F2; --red-text: #DC2626;
+            --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
+        body { background:var(--bg-master); color:var(--text-base); display:flex; height:100vh; overflow:hidden; }
+        .layout-wrapper { display:flex; width:100%; height:100%; }
+        main.content-area { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+        main.content-area::-webkit-scrollbar { width:6px; }
+        main.content-area::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
+
+        .header-bar {
+            position:sticky; top:0; z-index:20;
+            background:rgba(255,255,255,0.9); backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border);
+            padding:20px 40px;
+        }
+        .header-bar h1 { font-size:18px; font-weight:700; color:var(--text-strong); }
+        .header-bar p  { font-size:13px; color:var(--text-muted); font-weight:500; margin-top:3px; }
+
+        .page-body {
+            padding:40px; max-width:1100px; margin:0 auto; width:100%;
+            display:grid; grid-template-columns:240px 1fr; gap:24px; align-items:start;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-app); display: flex; height: 100vh; overflow: hidden; }
-        .app-envelope { width: 100%; height: 100%; display: flex; overflow: hidden; }
-        
-        a { text-decoration: none !important; }
+        /* Left Nav (same as settings-profile) */
+        .settings-nav-card { background:var(--bg-surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .nav-card-head { padding:16px 20px; border-bottom:1px solid var(--border); font-size:13px; font-weight:700; color:var(--text-strong); background:#F9FAFB; display:flex; align-items:center; gap:8px; }
+        .nav-card-head i { color:var(--text-muted); }
+        .nav-list-inner { padding:8px; display:flex; flex-direction:column; gap:2px; }
+        .nav-link { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:8px; font-size:14px; font-weight:600; color:var(--text-muted); text-decoration:none; transition:0.15s; }
+        .nav-link i { width:16px; text-align:center; font-size:14px; }
+        .nav-link:hover { background:#F3F4F6; color:var(--text-strong); }
+        .nav-link.active { background:#F3F4F6; color:var(--text-strong); font-weight:700; }
 
-        .main-panel { flex: 1; padding: 35px 40px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; background: var(--bg-white); padding: 15px 25px; border-radius: 16px; box-shadow: var(--shadow-card); flex-shrink: 0;}
-        .breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--text-dark); }
-        .breadcrumb i { color: var(--accent-purple); font-size: 18px; }
+        /* Right Content */
+        .right-col { display:flex; flex-direction:column; gap:20px; }
 
-        .layout-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
+        /* Panel */
+        .panel { background:var(--bg-surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-sm); overflow:hidden; }
+        .panel-head { padding:18px 24px; border-bottom:1px solid var(--border); background:#F9FAFB; display:flex; justify-content:space-between; align-items:center; }
+        .panel-head h2 { font-size:15px; font-weight:700; color:var(--text-strong); display:flex; align-items:center; gap:8px; }
+        .panel-head h2 i { font-size:13px; color:var(--text-muted); }
 
-        .glass-card { background: var(--bg-white); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color); align-self: start; }
-        .card-header { font-size: 18px; font-weight: 800; color: var(--text-dark); margin-bottom: 25px; display:flex; align-items:center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom:15px; }
+        /* Table */
+        table { width:100%; border-collapse:collapse; }
+        th { background:#F9FAFB; padding:14px 24px; text-align:left; font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); }
+        td { padding:18px 24px; border-bottom:1px solid var(--border); font-size:14px; background:#FFFFFF; vertical-align:middle; }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:#F9FAFB; }
 
-        .settings-nav { display: flex; flex-direction: column; gap: 10px; }
-        .settings-nav a { display: flex; align-items: center; gap: 15px; padding: 16px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-gray); text-decoration: none; transition: 0.3s; border: 2px solid transparent;}
-        .settings-nav a i { font-size: 18px; width: 24px; text-align: center; }
-        .settings-nav a:hover { background: var(--bg-app); color: var(--accent-purple); }
-        .settings-nav a.active { background: var(--accent-purple); color: #FFF; box-shadow: 0 10px 20px rgba(67,24,255,0.2); pointer-events: none; }
+        .staff-name { display:flex; align-items:center; gap:12px; }
+        .staff-avatar {
+            width:34px; height:34px; border-radius:8px;
+            background:var(--text-strong); color:#fff;
+            display:flex; align-items:center; justify-content:center;
+            font-size:13px; font-weight:700; flex-shrink:0;
+        }
+        .staff-label  { font-size:14px; font-weight:600; color:var(--text-strong); }
+        .role-pill { display:inline-flex; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; background:#F3F4F6; color:var(--text-muted); }
 
-        .premium-table { width: 100%; border-collapse: collapse; }
-        .premium-table th { padding: 15px; text-align: left; font-size: 12px; font-weight: 800; color: var(--text-gray); text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
-        .premium-table td { padding: 15px; font-size: 14px; font-weight: 600; color: var(--text-dark); border-bottom: 1px solid var(--border-color); vertical-align: middle; }
-        .premium-table tr:hover td { background: var(--bg-app); }
+        .btn-icon {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:32px; height:32px; border-radius:7px;
+            font-size:13px; text-decoration:none; transition:0.15s; border:1px solid var(--border);
+        }
+        .btn-icon-del { background:var(--bg-surface); color:var(--red-text); border-color:var(--border); }
+        .btn-icon-del:hover { background:var(--red-bg); border-color:#FECACA; }
 
-        .btn-new { background: var(--accent-purple); color: #FFF; font-weight: 700; font-size: 14px; padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; transition: 0.3s; }
-        .btn-new:hover { background: #3210c4; box-shadow: 0 5px 15px rgba(67,24,255,0.3); }
+        /* Add Staff Button */
+        .btn-primary {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:9px 18px; border-radius:8px;
+            background:var(--text-strong); color:#fff;
+            font-size:13px; font-weight:600; border:none; cursor:pointer;
+            transition:0.2s; box-shadow:var(--shadow-sm);
+        }
+        .btn-primary:hover { background:#1F2937; box-shadow:var(--shadow-md); }
 
-        .action-icon { display:inline-flex; width:32px; height:32px; align-items:center; justify-content:center; border-radius:8px; cursor:pointer; transition:0.3s; margin:0 3px; font-size:14px; color:#FFF; }
-        .action-edit { background: var(--accent-purple); box-shadow: 0 4px 10px rgba(67,24,255,0.2); }
-        .action-del { background: var(--accent-red); box-shadow: 0 4px 10px rgba(238,93,80,0.2); }
-        .action-edit:hover, .action-del:hover { transform: translateY(-2px); color:#FFF; opacity:0.9; }
+        /* Modal Overlay */
+        .modal-overlay {
+            display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4);
+            z-index:100; align-items:center; justify-content:center;
+            backdrop-filter:blur(4px);
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-box {
+            background:var(--bg-surface); border-radius:16px; width:100%; max-width:700px;
+            max-height:90vh; overflow-y:auto; box-shadow:0 25px 50px rgba(0,0,0,0.15);
+            border:1px solid var(--border);
+        }
+        .modal-box::-webkit-scrollbar { width:6px; }
+        .modal-box::-webkit-scrollbar-thumb { background:rgba(0,0,0,0.1); border-radius:10px; }
+        .modal-head { padding:20px 24px; border-bottom:1px solid var(--border); background:#F9FAFB; display:flex; justify-content:space-between; align-items:center; }
+        .modal-head h3 { font-size:16px; font-weight:700; color:var(--text-strong); display:flex; align-items:center; gap:8px; }
+        .modal-close { width:30px; height:30px; border-radius:6px; border:1px solid var(--border); background:var(--bg-surface); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--text-muted); transition:0.15s; }
+        .modal-close:hover { background:#F3F4F6; color:var(--text-strong); }
+        .modal-body { padding:28px 24px; display:flex; flex-direction:column; gap:20px; }
+        .modal-foot { padding:20px 24px; border-top:1px solid var(--border); background:#F9FAFB; display:flex; justify-content:flex-end; gap:12px; }
 
-        /* Modal Resets */
-        .modal-content { border-radius: 20px; border: none; box-shadow: var(--shadow-card); background: var(--bg-white); }
-        .modal-header { border-bottom: 1px solid var(--border-color); padding: 25px; }
-        .modal-title { font-weight: 800; font-size: 20px; color: var(--text-dark); }
-        .modal-body { padding: 25px; }
+        /* Form elements */
+        .field-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .field-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+        .inp-group { display:flex; flex-direction:column; gap:6px; }
+        .inp-group label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+        .inp-field { padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-weight:500; color:var(--text-strong); background:var(--bg-surface); outline:none; transition:0.2s; box-shadow:var(--shadow-sm); width:100%; }
+        .inp-field:focus { border-color:var(--border-md); box-shadow:0 0 0 3px rgba(17,24,39,0.06); }
 
-        .form-control { width: 100%; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; font-size: 14px; font-weight: 600; color: var(--text-dark); outline:none; transition:0.3s; margin-bottom: 15px; }
-        .form-control:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 4px var(--accent-purple-light); background: #FFF; }
+        /* Permissions */
+        .perm-section-title { font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:12px; }
+        .perm-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+        .perm-row {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:10px 14px; border-radius:8px; background:#F9FAFB; border:1px solid var(--border);
+        }
+        .perm-row-label { display:flex; align-items:center; gap:10px; font-size:13px; font-weight:600; color:var(--text-strong); }
+        .perm-row-label i { width:14px; text-align:center; font-size:12px; color:var(--text-muted); }
+        /* Toggle */
+        .toggle { position:relative; width:38px; height:20px; flex-shrink:0; }
+        .toggle input { opacity:0; width:0; height:0; }
+        .toggle-slider {
+            position:absolute; cursor:pointer; inset:0;
+            border-radius:20px; background:var(--border-md); transition:0.2s;
+        }
+        .toggle-slider:before {
+            content:''; position:absolute; width:14px; height:14px; border-radius:50%;
+            left:3px; top:3px; background:#fff; transition:0.2s;
+        }
+        .toggle input:checked + .toggle-slider { background:var(--text-strong); }
+        .toggle input:checked + .toggle-slider:before { transform:translateX(18px); }
 
-        .perm-group { margin-bottom: 15px; background: var(--bg-app); padding: 15px; border-radius: 12px; display:flex; align-items:center; justify-content:space-between; }
-        .perm-group .perm-label { font-size: 14px; font-weight: 700; color: var(--text-dark); display:flex; align-items:center; gap:10px; }
-        .perm-group .perm-label i { width: 20px; text-align:center; color: var(--accent-purple); }
-        .perm-cat { font-weight: 800; font-size: 15px; color: var(--text-gray); margin-top:20px; margin-bottom:10px; border-bottom: 2px solid var(--border-color); padding-bottom:5px; text-transform:uppercase;}
+        /* Grand access row */
+        .grand-row {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:14px 16px; border-radius:10px;
+            background:#F3F4F6; border:1px solid var(--border);
+        }
+        .grand-row-label { font-size:13px; font-weight:700; color:var(--text-strong); display:flex; align-items:center; gap:8px; }
 
-        /* SIDEBAR SUPPORT */
-        .sidebar { width: 260px; background: var(--bg-white); display: flex; flex-direction: column; padding: 40px 0; border-right: 1px solid var(--border-color); flex-shrink: 0; }
-        .logo-box { display: flex; align-items: center; padding: 0 30px; gap: 12px; margin-bottom: 50px; text-decoration: none; }
-        .logo-box img { max-height: 50px; width: auto; object-fit: contain; }
-        .nav-list { display: flex; flex-direction: column; gap: 5px; padding: 0 20px; flex: 1; }
-        .nav-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 12px; color: var(--text-gray); text-decoration: none; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .nav-item i, .nav-item img { width: 22px; text-align: center; }
-        .nav-item:hover, .nav-item.active { background: var(--accent-purple-light); color: var(--accent-purple); position: relative; }
-        .nav-item.active::before { content: ''; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); height: 60%; width: 4px; background: var(--accent-purple); border-radius: 0 4px 4px 0; }
+        .btn-cancel { display:inline-flex; align-items:center; padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600; border:1px solid var(--border); background:var(--bg-surface); color:var(--text-muted); cursor:pointer; transition:0.2s; box-shadow:var(--shadow-sm); }
+        .btn-cancel:hover { background:#F3F4F6; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .layout-wrapper { flex-direction: column; height: auto; overflow: visible; }
+            .sb-container { display: none !important; }
+            main.content-area { overflow-y: visible; }
+
+            .header-bar { padding: 14px 16px; position: static; }
+            .header-bar h1 { font-size: 18px; }
+
+            /* Stack nav + content */
+            .page-body {
+                padding: 12px 12px 80px;
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            /* Settings nav → horizontal scrollable pill bar */
+            .settings-nav-card { border-radius: 12px; }
+            .nav-card-head { display: none; }
+            .nav-list-inner {
+                flex-direction: row;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scroll-snap-type: x mandatory;
+                padding: 6px;
+                gap: 4px;
+                scrollbar-width: none;
+            }
+            .nav-list-inner::-webkit-scrollbar { display: none; }
+            .nav-link {
+                flex: 0 0 auto;
+                scroll-snap-align: start;
+                white-space: nowrap;
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+            }
+
+            /* Table: scroll horizontally */
+            table { min-width: 480px; }
+
+            /* Panel head: wrap button */
+            .panel-head { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
+
+            /* Modal: full-screen on mobile */
+            .modal-overlay { align-items: flex-end; }
+            .modal-box {
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                max-height: 92vh;
+            }
+            .modal-head { padding: 16px 18px; }
+            .modal-body { padding: 16px 18px; gap: 14px; }
+            .modal-foot { padding: 14px 18px; }
+
+            /* Form grids → single column in modal */
+            .field-row { grid-template-columns: 1fr; gap: 0; }
+            .field-row-3 { grid-template-columns: 1fr; gap: 0; }
+            .perm-grid { grid-template-columns: 1fr; gap: 6px; }
+        }
+        @media (max-width: 600px) {
+            .nav-link { font-size: 12px; padding: 9px 12px; }
+        }
     </style>
 </head>
 <body>
-    <div class="app-envelope">
+    <div class="layout-wrapper">
         <?php include 'sidebar.php'; ?>
 
-        <main class="main-panel">
-            <header class="header">
-                <div class="breadcrumb">
-                    <i class="fas fa-cog"></i> 
-                    <span>Configuration & Defaults / Staff Management</span>
+        <main class="content-area">
+            <header class="header-bar">
+                <div>
+                    <h1>Staff Accounts</h1>
+                    <p>Manage administrator access and permissions.</p>
                 </div>
             </header>
 
-            <div class="layout-grid">
-                
-                <!-- Left: Settings Menu -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div><i class="fas fa-sliders-h" style="color:var(--text-gray); margin-right:8px;"></i> System Settings</div>
-                    </div>
-                    
-                    <?php if($AdminID == 1){ ?>
-                    <div class="settings-nav">
-                        <a href="settings-profile.php"><i class="fas fa-user-shield"></i> Master Profile</a>
-                        <a href="settings-staff-accounts.php" class="active"><i class="fas fa-users-cog"></i> Staff Accounts</a>
-                        <a href="settings-delivery-zone.php"><i class="fas fa-map-marked-alt"></i> Delivery Zones</a>
-                        <a href="bakat.php"><i class="fas fa-box-open"></i> App Packages</a>
-                    </div>
-                    <?php } else { ?>
-                    <div class="settings-nav">
-                        <a href="settings-profile.php"><i class="fas fa-user-shield"></i> Agent Profile</a>
-                    </div>
-                    <?php } ?>
-                </div>
+            <div class="page-body">
 
-                <!-- Right: Staff Accounts Manager -->
-                <div class="glass-card">
-                    <div class="card-header">
-                        <div><i class="fas fa-users" style="color:var(--accent-purple); margin-right:8px;"></i> Authorized Staff</div>
-                        <button class="btn-new" data-toggle="modal" data-target="#modal-staff"><i class="fas fa-plus"></i> New Staff</button>
-                    </div>
-
-                    <div style="overflow-x:auto;">
-                        <table class="premium-table">
-                            <thead>
-                                <tr>
-                                    <th>Full Name</th>
-                                    <th>Password</th>
-                                    <th>Function / Role</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $res = mysqli_query($con,"SELECT * FROM Admin");
-                                while($row = mysqli_fetch_assoc($res)){ 
-                                ?>
-                                <tr>
-                                    <td style="font-weight:700; color:var(--accent-purple);"><i class="fas fa-user-astronaut" style="color:var(--text-gray); margin-right:8px;"></i> <?php echo $row["AdminName"]; ?></td>
-                                    <td><span style="letter-spacing:2px; font-weight:800; color:var(--text-gray);">••••••••</span></td>
-                                    <td><span style="background:rgba(67, 24, 255, 0.1); color:var(--accent-purple); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800; text-transform:uppercase;"><?php echo $row["Functionn"]; ?></span></td>
-                                    <td class="text-center">
-                                        <a href="#" class="action-icon action-edit" title="Edit Staff"><i class="fas fa-pen"></i></a>
-                                        <a href="deleteAdminAPI.php?id=<?php echo $row["AdminID"]; ?>" class="action-icon action-del" title="Revoke Access"><i class="fas fa-trash"></i></a>
-                                    </td>
-                                </tr>
-                                <?php } ?> 
-                            </tbody>
-                        </table>
+                <!-- Left: Settings Nav -->
+                <div class="settings-nav-card">
+                    <div class="nav-card-head"><i class="fas fa-sliders-h"></i> System Settings</div>
+                    <div class="nav-list-inner">
+                        <a href="settings-profile.php" class="nav-link">
+                            <i class="fas fa-user-shield"></i> Master Profile
+                        </a>
+                        <?php if($AdminID == 1): ?>
+                        <a href="settings-staff-accounts.php" class="nav-link active">
+                            <i class="fas fa-users-cog"></i> Staff Accounts
+                        </a>
+                        <a href="settings-delivery-zone.php" class="nav-link">
+                            <i class="fas fa-map-marked-alt"></i> Delivery Zones
+                        </a>
+                        <a href="bakat.php" class="nav-link">
+                            <i class="fas fa-box-open"></i> App Packages
+                        </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
+                <!-- Right Column -->
+                <div class="right-col">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2><i class="fas fa-users"></i> Authorized Staff</h2>
+                            <button class="btn-primary" onclick="document.getElementById('staffModal').classList.add('open')">
+                                <i class="fas fa-plus"></i> New Staff
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Staff Member</th>
+                                        <th>Role / Function</th>
+                                        <th>Password</th>
+                                        <th style="text-align:right; padding-right:24px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach($staff as $row): ?>
+                                    <tr>
+                                        <td>
+                                            <div class="staff-name">
+                                                <div class="staff-avatar"><?= strtoupper(substr($row['AdminName'], 0, 1)) ?></div>
+                                                <span class="staff-label"><?= htmlspecialchars($row['AdminName']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td><span class="role-pill"><?= htmlspecialchars($row['Functionn'] ?? '—') ?></span></td>
+                                        <td><span style="letter-spacing:3px; color:var(--text-muted); font-weight:700;">••••••••</span></td>
+                                        <td style="text-align:right; padding-right:24px;">
+                                            <a href="deleteAdminAPI.php?id=<?= $row['AdminID'] ?>" title="Revoke Access"
+                                               onclick="return confirm('Revoke access for <?= htmlspecialchars($row['AdminName']) ?>?')"
+                                               class="btn-icon btn-icon-del">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php if(empty($staff)): ?>
+                                    <tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-muted); font-weight:500;">No staff accounts found.</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal Form -->
-    <div class="modal fade" id="modal-staff" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-user-plus" style="color:var(--accent-purple); margin-right:10px;"></i> Provision New Staff Identity</h5>
-                    <button type="button" class="close" data-dismiss="modal" style="border:none; background:transparent; font-size:24px; color:var(--text-gray); cursor:pointer;">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form action="AddAdminApi.php" method="POST">
-                        
-                        <div class="row">
-                            <div class="col-md-6"><input type="text" placeholder="Full Name" class="form-control" name="AdminName" required></div>
-                            <div class="col-md-6"><input type="email" placeholder="Email Address" class="form-control" name="Email" required></div>
-                            <div class="col-md-4"><input type="text" placeholder="Department / Function" class="form-control" name="Function"></div>
-                            <div class="col-md-4"><input type="text" placeholder="Phone Number" class="form-control" name="Phone"></div>
-                            <div class="col-md-4"><input type="password" placeholder="Secure Password" class="form-control" name="AdminPassword" required></div>
-                        </div>
-
-                        <div style="background:var(--accent-purple-light); padding:15px; border-radius:12px; margin:20px 0; border:1px solid rgba(67,24,255,0.2); display:flex; justify-content:space-between; align-items:center;">
-                            <div style="font-weight:800; color:var(--accent-purple);">Grand Master Rights (All Systems)</div>
-                            <div class="custom-control custom-switch" style="transform:scale(1.2); margin-right:10px;">
-                                <input type="checkbox" name="all" class="custom-control-input" id="checkAll">
-                                <label class="custom-control-label" for="checkAll"></label>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="perm-cat">Users & Drivers</div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-users"></i> Users page</span><input type="checkbox" name="Userspage"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-id-card"></i> User info</span><input type="checkbox" name="UserInformation"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-download"></i> Download data</span><input type="checkbox" name="DownloadUsersData"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-motorcycle"></i> Drivers page</span><input type="checkbox" name="DriversPage"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-plus"></i> Add driver</span><input type="checkbox" name="AddNewDriver"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-address-card"></i> Driver profile</span><input type="checkbox" name="DriverProfile"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="perm-cat">Stores & Commerce</div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-store"></i> Shops page</span><input type="checkbox" name="ShopsPage"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-store-alt"></i> Add Shop</span><input type="checkbox" name="AddNewShop"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-store-alt-slash"></i> Shop Profile</span><input type="checkbox" name="ShopProfile"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-box"></i> Orders page</span><input type="checkbox" name="OrdersPage"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-search-dollar"></i> Order details</span><input type="checkbox" name="OrderDetails"></div>
-                                <div class="perm-group"><span class="perm-label"><i class="fas fa-wallet"></i> Wallet page</span><input type="checkbox" name="WalletPage"></div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="perm-cat">Core System & Settings</div>
-                                <div class="row">
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-sliders-h"></i> Add Slides</span><input type="checkbox" name="AddSlides"></div></div>
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-route"></i> Controls</span><input type="checkbox" name="ControleDistance"></div></div>
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-tags"></i> Categories</span><input type="checkbox" name="Categores"></div></div>
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-bell"></i> Notifications</span><input type="checkbox" name="Notification"></div></div>
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-ban"></i> Blacklist</span><input type="checkbox" name="blacklistr"></div></div>
-                                    <div class="col-md-4"><div class="perm-group"><span class="perm-label"><i class="fas fa-money-check-alt"></i> Payments</span><input type="checkbox" name="Payments"></div></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" style="width:100%;" class="btn-new" style="margin-top:20px; font-size:16px; padding:15px;"><i class="fas fa-shield-alt"></i> Provision Staff Administrator</button>
-                    </form>
-                </div>
+    <!-- Add Staff Modal -->
+    <div class="modal-overlay" id="staffModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h3><i class="fas fa-user-plus" style="color:var(--text-muted);"></i> Provision New Staff Account</h3>
+                <button class="modal-close" onclick="document.getElementById('staffModal').classList.remove('open')">×</button>
             </div>
+            <form action="AddAdminApi.php" method="POST">
+                <div class="modal-body">
+
+                    <!-- Basic Info -->
+                    <div class="field-row">
+                        <div class="inp-group">
+                            <label>Full Name</label>
+                            <input type="text" name="AdminName" class="inp-field" placeholder="e.g. Sara Alami" required>
+                        </div>
+                        <div class="inp-group">
+                            <label>Email Address</label>
+                            <input type="email" name="Email" class="inp-field" placeholder="e.g. sara@qoon.app" required>
+                        </div>
+                    </div>
+                    <div class="field-row-3">
+                        <div class="inp-group">
+                            <label>Department / Role</label>
+                            <input type="text" name="Function" class="inp-field" placeholder="e.g. Support">
+                        </div>
+                        <div class="inp-group">
+                            <label>Phone Number</label>
+                            <input type="text" name="Phone" class="inp-field" placeholder="+212...">
+                        </div>
+                        <div class="inp-group">
+                            <label>Password</label>
+                            <input type="password" name="AdminPassword" class="inp-field" placeholder="Secure password" required>
+                        </div>
+                    </div>
+
+                    <!-- Grand Access -->
+                    <div class="grand-row">
+                        <span class="grand-row-label"><i class="fas fa-shield-alt"></i> Grant Master Rights (All Systems)</span>
+                        <label class="toggle">
+                            <input type="checkbox" name="all">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Permissions: Users & Drivers -->
+                    <div>
+                        <div class="perm-section-title">Users &amp; Drivers</div>
+                        <div class="perm-grid">
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-users"></i> Users Page</span><label class="toggle"><input type="checkbox" name="Userspage"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-id-card"></i> User Info</span><label class="toggle"><input type="checkbox" name="UserInformation"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-download"></i> Download Data</span><label class="toggle"><input type="checkbox" name="DownloadUsersData"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-motorcycle"></i> Drivers Page</span><label class="toggle"><input type="checkbox" name="DriversPage"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-plus"></i> Add Driver</span><label class="toggle"><input type="checkbox" name="AddNewDriver"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-address-card"></i> Driver Profile</span><label class="toggle"><input type="checkbox" name="DriverProfile"><span class="toggle-slider"></span></label></div>
+                        </div>
+                    </div>
+
+                    <!-- Permissions: Stores & Commerce -->
+                    <div>
+                        <div class="perm-section-title">Stores &amp; Commerce</div>
+                        <div class="perm-grid">
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-store"></i> Shops Page</span><label class="toggle"><input type="checkbox" name="ShopsPage"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-store-alt"></i> Add Shop</span><label class="toggle"><input type="checkbox" name="AddNewShop"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-store-alt-slash"></i> Shop Profile</span><label class="toggle"><input type="checkbox" name="ShopProfile"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-box"></i> Orders Page</span><label class="toggle"><input type="checkbox" name="OrdersPage"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-search-dollar"></i> Order Details</span><label class="toggle"><input type="checkbox" name="OrderDetails"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-wallet"></i> Wallet Page</span><label class="toggle"><input type="checkbox" name="WalletPage"><span class="toggle-slider"></span></label></div>
+                        </div>
+                    </div>
+
+                    <!-- Permissions: Core System -->
+                    <div>
+                        <div class="perm-section-title">Core System &amp; Settings</div>
+                        <div class="perm-grid">
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-sliders-h"></i> Add Slides</span><label class="toggle"><input type="checkbox" name="AddSlides"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-route"></i> Controls</span><label class="toggle"><input type="checkbox" name="ControleDistance"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-tags"></i> Categories</span><label class="toggle"><input type="checkbox" name="Categores"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-bell"></i> Notifications</span><label class="toggle"><input type="checkbox" name="Notification"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-ban"></i> Blacklist</span><label class="toggle"><input type="checkbox" name="blacklistr"><span class="toggle-slider"></span></label></div>
+                            <div class="perm-row"><span class="perm-row-label"><i class="fas fa-money-check-alt"></i> Payments</span><label class="toggle"><input type="checkbox" name="Payments"><span class="toggle-slider"></span></label></div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-foot">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('staffModal').classList.remove('open')">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fas fa-shield-alt"></i> Provision Staff Account</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script>
+        // Close modal when clicking outside
+        document.getElementById('staffModal').addEventListener('click', function(e) {
+            if(e.target === this) this.classList.remove('open');
+        });
+    </script>
 </body>
 </html>

@@ -18,15 +18,16 @@ try {
     echo "Failed to connect to MySQL: " . $con->connect_error;
     exit();
   }
+  // Force UTF-8 on every connection so Arabic / Unicode text displays correctly
+  $con->set_charset("utf8mb4");
+  $con->query("SET NAMES 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'");
 } catch (Exception $e) {
   echo "Connection failed: " . $e->getMessage();
 }
 
 session_start();
 
-$xx = $_SESSION["Emailjibler"];
-
-$xx = $_COOKIE["Emailjibler"];
+$xx = $_SESSION["Emailjibler"] ?? $_COOKIE["Emailjibler"] ?? '';
 
 if ($xx == '') {
   //  header("location: login.html"); 

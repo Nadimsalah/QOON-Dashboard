@@ -129,6 +129,60 @@ if($resErad) {
         .page-btn:hover { background: var(--accent-purple); color: #FFF; border-color: var(--accent-purple); }
         .page-btn.disabled { opacity: 0.5; pointer-events: none; }
 
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+
+            /* Header */
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+
+            /* KPI hero: stack on tablet */
+            .kpi-master {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 24px;
+                margin-bottom: 16px;
+                border-radius: 16px;
+            }
+            .kpi-master h1 { font-size: 32px; }
+
+            /* Revenue channels: 2 cols */
+            .rev-channels { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+            .channel-card { padding: 16px; gap: 12px; border-radius: 12px; }
+            .ch-icon { width: 38px; height: 38px; font-size: 15px; }
+            .ch-data h3 { font-size: 15px; }
+
+            /* Table: horizontal scroll on tablet */
+            .table-container { padding: 16px; border-radius: 16px; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            td, th { padding: 12px 10px; }
+
+            .pagination { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .kpi-master h1 { font-size: 26px; }
+            .kpi-master h4 { font-size: 12px; }
+
+            /* Revenue channels: single col */
+            .rev-channels { grid-template-columns: 1fr; gap: 10px; }
+
+            /* Table: hide Timestamp + Entity Type cols — keep ID, Entity, Revenue */
+            table thead tr th:nth-child(2),
+            table thead tr th:nth-child(4),
+            table tbody tr td:nth-child(2),
+            table tbody tr td:nth-child(4) { display: none; }
+
+            td { font-size: 13px; padding: 10px 8px; }
+            .rev-amt { font-size: 14px; }
+            .part-node img { width: 28px; height: 28px; }
+        }
     </style>
 </head>
 <body>

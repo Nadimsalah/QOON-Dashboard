@@ -14,11 +14,11 @@ $OpenType        = $_POST["OpenType"];
 
   $photo1name="w-".rand();
 
-  $path = "db/db/photo/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
   $t = explode(",",$SliderPosition);
  
-  $actualpath = "https://jibler.ma/$path";
+  $actualpath = "https://qoon.app/$path";
  
   $path = "photo/$photo1name.png";
  

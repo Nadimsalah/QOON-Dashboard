@@ -9,10 +9,10 @@ $ShopID = $_POST["ShopID"];
 
   $photo1name="w-".rand();
 
-  $path = "jibler/admin/jbler/photo/$photo1name.png";
+  $path = "photo/$photo1name.png";
 
  
-  $actualpath = "https://sae-marketing.com/$path";
+  $actualpath = "https://qoon.app/$path";
  
   $path = "photo/$photo1name.png";
  
@@ -30,7 +30,7 @@ $ShopID = $_POST["ShopID"];
    
    if (move_uploaded_file($_FILES["Photo"]["tmp_name"], $path)) {
         echo "The file ". basename( $_FILES["Photo"]["name"]). " has been uploaded.";
-		header("location: https://sae-marketing.com/jibler/admin/jbler/Stories.php"); 
+		header("location: apps.php"); 
     } else {
         echo "Sorry, there was an error uploading your file.";
     }

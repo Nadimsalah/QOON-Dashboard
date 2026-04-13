@@ -106,6 +106,54 @@ if ($Type == "limit") {
 
         .btn-submit { background: <?= $accentColor ?>; color: #FFF; border: none; padding: 18px 24px; border-radius: 16px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-shadow: 0 10px 25px <?= $accentColor ?>40; }
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 15px 35px <?= $accentColor ?>60; }
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+
+            /* Hide desktop sidebar */
+            .sidebar { display: none !important; }
+
+            /* Header: drop absolute positioning — it breaks on mobile */
+            .header {
+                position: static;
+                padding: 16px 16px 0;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+            }
+
+            .back-btn { font-size: 13px; padding: 10px 16px; }
+
+            /* Main panel: scrolls naturally, centered card */
+            .main-panel {
+                padding: 24px 16px 80px;
+                justify-content: flex-start;
+                align-items: center;
+                overflow-y: visible;
+            }
+
+            /* Config card: narrower padding on tablet */
+            .config-card { padding: 32px 24px; }
+            .config-icon { width: 64px; height: 64px; font-size: 26px; border-radius: 16px; margin-bottom: 18px; }
+            .config-title { font-size: 20px; }
+            .config-sub  { font-size: 13px; margin-bottom: 24px; }
+
+            .input-wrapper input { font-size: 18px; padding: 16px 50px; }
+            .btn-submit { padding: 16px 20px; font-size: 15px; border-radius: 14px; }
+        }
+
+        /* ── PHONE ≤ 600px ───────────────────────────────────────────────── */
+        @media (max-width: 600px) {
+            .config-card { padding: 24px 18px; border-radius: 20px; }
+            .config-icon { width: 56px; height: 56px; font-size: 22px; }
+            .config-title { font-size: 18px; }
+            .input-wrapper input { font-size: 16px; padding: 14px 46px; }
+            .input-wrapper i { font-size: 16px; left: 16px; }
+            .input-wrapper span { font-size: 13px; right: 16px; }
+        }
+
     </style>
 </head>
 <body>
@@ -114,12 +162,7 @@ if ($Type == "limit") {
         
         <header class="header">
             <a href="driver.php" class="back-btn"><i class="fas fa-arrow-left"></i> Drivers Dashboard</a>
-            <div class="profile" onclick="window.location='settings-profile.php'">
-                <img src="images/avatar-1.png" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=EFEAF8&color=623CEA'">
-                <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span style="font-weight:700; color:var(--text-dark); font-size:14px;">Administrator</span>
-                </div>
-            </div>
+
         </header>
 
         <main class="main-panel">

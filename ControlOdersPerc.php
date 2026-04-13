@@ -114,6 +114,30 @@ if($resCats) {
         .input-wrap-f input:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 3px var(--accent-purple-light); }
         .input-wrap-f span.unit { position: absolute; right: 15px; font-size: 13px; font-weight: 800; color: var(--text-gray); background: var(--bg-app); padding: 4px 8px; border-radius: 6px; pointer-events:none;}
         .loader-overlay { display: none; position: fixed; inset:0; background:rgba(255,255,255,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column; gap:15px; backdrop-filter: blur(5px);}
+
+        /* ── MOBILE RESPONSIVE ──────────────────────────────────────────── */
+        @media (max-width: 991px) {
+            body { height: auto; overflow-y: auto; }
+            .app-envelope { flex-direction: column; height: auto; overflow: visible; }
+            .sidebar { display: none !important; }
+            .main-panel { padding: 16px 16px 80px; overflow-y: visible; overflow-x: hidden; }
+            .header { flex-wrap: wrap; gap: 8px; margin-bottom: 16px; padding: 12px 16px; }
+            .breadcrumb { font-size: 13px; flex-wrap: wrap; }
+
+            /* 2-col layout → single column */
+            .super-grid { grid-template-columns: 1fr; gap: 16px; }
+            .panel-card { padding: 20px; border-radius: 16px; }
+
+            /* Category bubbles: slightly smaller */
+            .cats-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+            .cat-bubble { padding: 16px; }
+            .cat-bubble img { height: 50px; }
+        }
+        @media (max-width: 600px) {
+            .cats-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+            /* Stack paired inputs vertically */
+            .input-row { flex-direction: column; gap: 0; }
+        }
     </style>
 </head>
 <body>
