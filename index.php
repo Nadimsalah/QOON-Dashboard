@@ -81,24 +81,44 @@ $displayPeriod = ($startDate === '2015-01-01') ? 'Ecosystem Overview' : date('d 
         .page-body { padding:40px; display:flex; flex-direction:column; gap:28px; }
 
         /* KPI Row */
-        .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
 
-        .kpi-card {
-            background:var(--bg-surface);
-            border:1px solid var(--border);
-            border-radius:14px; padding:24px;
-            display:flex; flex-direction:column; gap:14px;
-            box-shadow:var(--shadow-sm); transition:0.2s;
+        .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+
+        .ai-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 18px; padding: 16px 20px;
+            display: flex; align-items: center; gap: 16px;
+            box-shadow: var(--shadow-sm); transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer; position: relative; overflow: hidden;
         }
-        .kpi-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
-        .kpi-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-        .kpi-label { font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-        .kpi-val   { font-size:30px; font-weight:700; color:var(--text-strong); letter-spacing:-1px; line-height:1; }
+        .ai-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--text-strong); }
+        .ai-card::after {
+            content: 'Click to Consult';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: var(--text-strong); color: #fff;
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            text-align: center; padding: 4px 0;
+            transform: translateY(100%); transition: 0.2s;
+        }
+        .ai-card:hover::after { transform: translateY(0); }
 
-        .ic-green  { background:var(--green-bg);  color:var(--green-text);  }
-        .ic-blue   { background:var(--blue-bg);   color:var(--blue-text);   }
-        .ic-purple { background:var(--purple-bg); color:var(--purple-text); }
-        .ic-red    { background:var(--red-bg);    color:var(--red-text);    }
+        .ai-card .ai-avatar {
+            width: 52px; height: 52px; border-radius: 14px;
+            overflow: hidden; border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex-shrink: 0;
+        }
+        .ai-card .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .ai-card .ai-info { display: flex; flex-direction: column; gap: 2px; }
+        .ai-card .ai-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .ai-card .ai-val   { font-size: 22px; font-weight: 800; color: var(--text-strong); letter-spacing: -0.5px; }
+        .ai-card .ai-agent { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+        /* Agent Themes */
+        .card-mahjoub:hover { border-color: #D97706; }
+        .card-adam:hover    { border-color: #7C3AED; }
+        .card-tamo:hover    { border-color: #E11D48; }
+        .card-ali:hover     { border-color: #2563EB; }
 
         /* Main grid */
         .main-grid { display:grid; grid-template-columns:1fr 360px; gap:24px; }
@@ -269,27 +289,54 @@ $displayPeriod = ($startDate === '2015-01-01') ? 'Ecosystem Overview' : date('d 
 
             <div class="page-body">
 
-                <!-- KPIs -->
+                <!-- AI AGENT KPIs -->
                 <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="kpi-icon ic-blue"><i class="fas fa-users"></i></div>
-                        <div class="kpi-label">Total Members</div>
-                        <div class="kpi-val" id="UserNumber"><span class="shimmer"></span></div>
+                    <!-- Mahjoub: Finance -->
+                    <div class="ai-card card-mahjoub" onclick="openGlobalAI('Mahjoub')">
+                        <div class="ai-avatar">
+                            <img src="mahjoub.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Mahjoub&background=FEF3C7&color=D97706&bold=true'">
+                        </div>
+                        <div class="ai-info">
+                            <span class="ai-label">Settled Revenue</span>
+                            <div class="ai-val" id="SalesR"><span class="shimmer"></span></div>
+                            <span class="ai-agent">Consult <b>Mahjoub</b></span>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon ic-purple"><i class="fas fa-store"></i></div>
-                        <div class="kpi-label">Verified Shops</div>
-                        <div class="kpi-val" id="ShopsNumber"><span class="shimmer"></span></div>
+
+                    <!-- Adam: Users -->
+                    <div class="ai-card card-adam" onclick="openGlobalAI('Adam')">
+                        <div class="ai-avatar">
+                            <img src="adam.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Adam&background=F5F3FF&color=7C3AED&bold=true'">
+                        </div>
+                        <div class="ai-info">
+                            <span class="ai-label">Newly Joined</span>
+                            <div class="ai-val" id="UserNumber"><span class="shimmer"></span></div>
+                            <span class="ai-agent">Consult <b>Adam</b></span>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon ic-green"><i class="fas fa-box-open"></i></div>
-                        <div class="kpi-label">System Orders</div>
-                        <div class="kpi-val" id="OrdersNumber"><span class="shimmer"></span></div>
+
+                    <!-- Tamo: Drivers -->
+                    <div class="ai-card card-tamo" onclick="openGlobalAI('Tamo')">
+                        <div class="ai-avatar">
+                            <img src="tamo.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Tamo&background=FFF1F2&color=E11D48&bold=true'">
+                        </div>
+                        <div class="ai-info">
+                            <span class="ai-label">Active Fleet</span>
+                            <div class="ai-val" id="driverCountSide"><span class="shimmer"></span></div>
+                            <span class="ai-agent">Consult <b>Tamo</b></span>
+                        </div>
                     </div>
-                    <div class="kpi-card">
-                        <div class="kpi-icon ic-red"><i class="fas fa-motorcycle"></i></div>
-                        <div class="kpi-label">Active Drivers</div>
-                        <div class="kpi-val" id="driverCountSide"><span class="shimmer"></span></div>
+
+                    <!-- Ali: Orders -->
+                    <div class="ai-card card-ali" onclick="openGlobalAI('Ali')">
+                        <div class="ai-avatar">
+                            <img src="ali.webp" onerror="this.src='https://ui-avatars.com/api/?name=Ali&background=EFF6FF&color=2563EB&bold=true'">
+                        </div>
+                        <div class="ai-info">
+                            <span class="ai-label">Total Volume</span>
+                            <div class="ai-val" id="OrdersNumber"><span class="shimmer"></span></div>
+                            <span class="ai-agent">Consult <b>Ali</b></span>
+                        </div>
                     </div>
                 </div>
 
@@ -445,10 +492,14 @@ $displayPeriod = ($startDate === '2015-01-01') ? 'Ecosystem Overview' : date('d 
             padding: 10, cornerRadius: 8, displayColors: false
         };
 
+
+        let DASHBOARD_DATA = {};
+
         async function loadDashboard() {
             try {
                 const res = await fetch(`ajax_dashboard_data.php?start_date=<?= $startDate ?>&end_date=<?= $endDate ?>&city_id=<?= $cityID ?>`);
                 const d   = await res.json();
+                DASHBOARD_DATA = d;
 
                 // KPIs
                 document.getElementById('UserNumber').innerText    = d.UserNumber;
@@ -616,6 +667,192 @@ $displayPeriod = ($startDate === '2015-01-01') ? 'Ecosystem Overview' : date('d 
                     location.href = `index.php?start_date=${i.formatDate(s[0],'Y-m-d')}&end_date=${i.formatDate(s[1],'Y-m-d')}`;
             }
         });
+    </script>
+
+    <!-- UNIFIED AI CHAT MODAL -->
+    <style>
+        .g-ai-popup {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            width: 400px; height: 600px;
+            background: #fff; border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.22);
+            display: flex; flex-direction: column;
+            z-index: 10000;
+            transform: translateY(30px) scale(0.95);
+            opacity: 0; pointer-events: none;
+            transition: all 0.38s cubic-bezier(0.19, 1, 0.22, 1);
+            border: 1px solid rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .g-ai-popup.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
+
+        .g-ai-head {
+            padding: 18px 20px; color: #fff;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0; transition: background 0.3s;
+        }
+        .g-ai-agent-pic { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(255,255,255,0.3); }
+        .g-ai-meta { flex: 1; margin-left: 12px; }
+        .g-ai-meta b { display: block; font-size: 15px; }
+        .g-ai-meta span { font-size: 11px; opacity: 0.8; }
+
+        .g-ai-body { flex: 1; padding: 18px; overflow-y: auto; background: #F8F9FC; display: flex; flex-direction: column; gap: 12px; }
+        .g-msg { display: flex; max-width: 85%; line-height: 1.5; font-size: 13.5px; }
+        .g-msg.bot { align-self: flex-start; }
+        .g-msg.user { align-self: flex-end; }
+        .g-bubble { padding: 12px 16px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+        .g-msg.bot .g-bubble { background: #fff; color: #111827; border-bottom-left-radius: 4px; border: 1px solid #E5E7EB; }
+        .g-msg.user .g-bubble { background: var(--ai-theme, #111827); color: #fff; border-bottom-right-radius: 4px; }
+
+        .g-ai-foot { padding: 14px; background: #fff; border-top: 1px solid #F0F0F0; display: flex; gap: 10px; }
+        .g-ai-input { flex: 1; border: 1.5px solid #E5E7EB; border-radius: 25px; padding: 10px 18px; font-size: 14px; outline: none; }
+        .g-ai-input:focus { border-color: var(--ai-theme); }
+        .g-ai-send { width: 42px; height: 42px; border-radius: 50%; background: var(--ai-theme); color: #fff; border: none; cursor: pointer; display:flex; align-items:center; justify-content:center; }
+
+        @media (max-width: 600px) {
+            .g-ai-popup { width: 100%; height: 100%; bottom: 0; right: 0; border-radius: 0; }
+        }
+    </style>
+
+    <div class="g-ai-popup" id="globalAIPopup">
+        <div class="g-ai-head" id="globalAIHead">
+            <div style="display:flex; align-items:center;">
+                <img src="" id="globalAIPic" class="g-ai-agent-pic">
+                <div class="g-ai-meta">
+                    <b id="globalAIName">Agent Name</b>
+                    <span id="globalAITitle">Specialist</span>
+                </div>
+            </div>
+            <i class="fas fa-times" style="cursor:pointer;opacity:0.7;" onclick="closeGlobalAI()"></i>
+        </div>
+        <div class="g-ai-body" id="globalAIBody"></div>
+        <div id="globalAITyping" style="padding:0 20px 10px; font-size:12px; color:#9CA3AF; display:none; background:#F8F9FC;">Thinking...</div>
+        <div class="g-ai-foot">
+            <input type="text" id="globalAIInput" class="g-ai-input" placeholder="Ask me anything...">
+            <button class="g-ai-send" id="globalAISendBtn" onclick="sendGlobalAIMsg()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        const AGENTS = {
+            'Mahjoub': { title: 'Finance & Treasury', color: '#D97706', img: 'mahjoub.jpg', prompt: 'I am Mahjoub, your financial assistant. I handle revenue, income, and debts.', context: 'financial_analyst' },
+            'Adam':    { title: 'User Management', color: '#7C3AED', img: 'adam.jpg', prompt: 'I am Adam, your users specialist. I can help you with member growth and behavior.', context: 'user_manager' },
+            'Tamo':    { title: 'Fleet Logistics', color: '#E11D48', img: 'tamo.jpg', prompt: 'I am Tamo, your driver manager. I oversee the fleet performance.', context: 'driver_manager' },
+            'Ali':     { title: 'Operations Lead', color: '#2563EB', img: 'ali.webp', prompt: 'I am Ali, your order operations expert. I monitor order flow and delivery states.', context: 'order_manager' }
+        };
+
+        let currentAgentKey = null;
+        let globalChatHistory = {};
+
+
+
+        function openGlobalAI(key) {
+            const a = AGENTS[key];
+            currentAgentKey = key;
+            
+            document.getElementById('globalAIName').textContent = key;
+            document.getElementById('globalAITitle').textContent = a.title;
+            document.getElementById('globalAIPic').src = a.img;
+            document.getElementById('globalAIHead').style.backgroundColor = a.color;
+            document.documentElement.style.setProperty('--ai-theme', a.color);
+            
+            const popup = document.getElementById('globalAIPopup');
+            popup.classList.add('open');
+            
+            const body = document.getElementById('globalAIBody');
+            if (!globalChatHistory[key]) {
+                globalChatHistory[key] = [];
+                let liveIntro = "";
+                let agentHeader = `
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid rgba(0,0,0,0.05);">
+                        <img src="${a.img}" style="width:32px; height:32px; border-radius:8px; object-fit:cover; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+                        <span style="font-weight:800; font-size:13px; color:${a.color}; text-transform:uppercase; letter-spacing:0.5px;">${key} Intelligence</span>
+                    </div>
+                `;
+                
+                if (key === 'Adam') {
+                    liveIntro = agentHeader + `Total Registered Users: <b>${DASHBOARD_DATA.UserNumber || 0}</b>.<br><br>This is the current live count of all registered user accounts on the QOON platform. How can I help you with user analytics?`;
+                } else if (key === 'Mahjoub') {
+                    liveIntro = agentHeader + `Today's Settled Revenue: <b>${DASHBOARD_DATA.SalesR || 0} MAD</b>.<br><br>This reflects the total volume of successful transactions within the selected period. How can I assist with financial tracking?`;
+                } else if (key === 'Tamo') {
+                    liveIntro = agentHeader + `Active Fleet: <b>${DASHBOARD_DATA.DriverNumber || 0}</b> drivers online.<br><br>This is the real-time count of couriers ready for allocation. Need a logistics report?`;
+                } else if (key === 'Ali') {
+                    liveIntro = agentHeader + `System Orders: <b>${DASHBOARD_DATA.OrdersNumber || 0}</b> processed.<br><br>This accounts for all orders across the ecosystem. How can I help monitor operations?`;
+                } else {
+                    liveIntro = agentHeader + `👋 Hello! I am <b>${key}</b>, your ${a.title}. ${a.prompt} How can I help you today?`;
+                }
+
+                body.innerHTML = `<div class="g-msg bot"><div class="g-bubble">${liveIntro}</div></div>`;
+            } else {
+                renderGlobalHistory(key);
+            }
+            
+            document.getElementById('globalAIInput').focus();
+        }
+
+        function closeGlobalAI() { document.getElementById('globalAIPopup').classList.remove('open'); }
+
+        async function sendGlobalAIMsg() {
+            const input = document.getElementById('globalAIInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            addMsgToBody('user', msg);
+            input.value = '';
+            
+            const typing = document.getElementById('globalAITyping');
+            typing.style.display = 'block';
+            scrollGlobalBottom();
+
+            try {
+                const res = await fetch('ai-user-agent-api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: msg,
+                        history: globalChatHistory[currentAgentKey],
+                        page_data: { 
+                            type: 'ecosystem_dashboard',
+                            agent: currentAgentKey,
+                            context: AGENTS[currentAgentKey].context
+                        }
+                    })
+                });
+                const data = await res.json();
+                typing.style.display = 'none';
+                if (data.reply) {
+                    addMsgToBody('bot', data.reply);
+                    globalChatHistory[currentAgentKey].push({ role: 'user', content: msg });
+                    globalChatHistory[currentAgentKey].push({ role: 'ai', content: data.reply });
+                }
+            } catch(e) { typing.style.display = 'none'; }
+        }
+
+        function addMsgToBody(sender, text) {
+            const body = document.getElementById('globalAIBody');
+            const div = document.createElement('div');
+            div.className = `g-msg ${sender}`;
+            let fmt = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+            div.innerHTML = `<div class="g-bubble">${fmt}</div>`;
+            body.appendChild(div);
+            scrollGlobalBottom();
+        }
+
+        function renderGlobalHistory(key) {
+            const body = document.getElementById('globalAIBody');
+            body.innerHTML = `<div class="g-msg bot"><div class="g-bubble">👋 Welcome back! I am <b>${key}</b>. How can we continue?</div></div>`;
+            globalChatHistory[key].forEach(m => {
+                addMsgToBody(m.role === 'ai' ? 'bot' : 'user', m.content);
+            });
+        }
+
+        function scrollGlobalBottom() {
+            const b = document.getElementById('globalAIBody');
+            b.scrollTop = b.scrollHeight;
+        }
+
+        document.getElementById('globalAIInput').onkeypress = (e) => { if(e.key==='Enter') sendGlobalAIMsg(); };
     </script>
 </body>
 </html>

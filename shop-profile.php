@@ -216,6 +216,150 @@ if (empty($cleanCover)) $cleanCover = 'images/default_cover.jpg'; // Adjust fall
         }
 
     </style>
+
+    <style>
+        /* ----- AMINE AI ASSISTANT (Shop Profile) ----- */
+        .ai-fab {
+            position: fixed;
+            bottom: 25px; right: 25px;
+            width: 62px; height: 62px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.35), 0 2px 8px rgba(0,0,0,0.12);
+            cursor: pointer;
+            z-index: 9999;
+            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 0;
+            border: 2.5px solid #fff;
+        }
+        .ai-fab:hover { transform: scale(1.08); box-shadow: 0 12px 36px rgba(16, 185, 129, 0.45); }
+        .ai-fab img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .ai-fab-dot {
+            position: absolute;
+            bottom: 2px; right: 2px;
+            width: 14px; height: 14px;
+            background: #22c55e;
+            border: 2.5px solid #fff;
+            border-radius: 50%;
+            animation: fabPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes fabPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+            50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        }
+
+        /* ── AI CHAT POPUP ── */
+        .ai-popup {
+            position: fixed;
+            bottom: 100px; right: 25px;
+            width: 390px; height: 580px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            z-index: 9998;
+            transform: translateY(20px) scale(0.97);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .ai-popup.open {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Header */
+        .ai-head {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: #fff;
+            padding: 16px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .ai-head-titles { display:flex; flex-direction:column; line-height:1.3; }
+        .ai-head-titles span { font-weight:700; font-size:15px; }
+        .ai-head-titles small { font-size:11px; opacity:0.85; margin-top:2px; }
+        .ai-close {
+            cursor:pointer; font-size:18px; opacity:0.8;
+            transition:0.2s; width:32px; height:32px;
+            display:flex; align-items:center; justify-content:center;
+            border-radius:50%; background:rgba(255,255,255,0.15);
+        }
+        .ai-close:hover { opacity:1; background:rgba(255,255,255,0.25); }
+
+        /* Messages */
+        .ai-body {
+            flex: 1; padding: 16px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 12px;
+            background: #F5F6FA;
+            scroll-behavior: smooth;
+        }
+        .ai-body::-webkit-scrollbar { width: 4px; }
+        .ai-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+
+        .ai-msg { display:flex; max-width:82%; line-height:1.55; font-size:13.5px; }
+        .ai-msg.bot  { align-self: flex-start; }
+        .ai-msg.user { align-self: flex-end; }
+        .ai-bubble {
+            padding: 11px 15px; border-radius: 18px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            word-break: break-word;
+        }
+        .ai-msg.bot  .ai-bubble { background:#fff; color:#111827; border-bottom-left-radius:4px; border:1px solid #E5E7EB; }
+        .ai-msg.user .ai-bubble { background:#10B981; color:#fff; border-bottom-right-radius:4px; }
+
+        /* Typing */
+        .ai-typing {
+            font-size:12px; color:#9CA3AF;
+            display:none; padding:0 16px 10px;
+            background:#F5F6FA; flex-shrink:0;
+        }
+        .ai-typing span { display:inline-block; animation: typBounce 1.2s infinite; }
+        .ai-typing span:nth-child(2) { animation-delay:.2s; }
+        .ai-typing span:nth-child(3) { animation-delay:.4s; }
+        @keyframes typBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+        /* Input foot */
+        .ai-foot {
+            padding: 12px 14px;
+            background: #fff; border-top: 1px solid #F0F0F0;
+            display:flex; gap:10px; align-items:center;
+            flex-shrink: 0;
+        }
+        .ai-input {
+            flex: 1; border: 1.5px solid #E5E7EB; border-radius: 22px;
+            padding: 10px 16px; font-size:13.5px;
+            outline:none; background:#F9FAFB;
+            transition:0.2s; font-family:inherit;
+            resize: none; line-height: 1.4;
+        }
+        .ai-input:focus { border-color:#10B981; background:#fff; box-shadow:0 0 0 3px rgba(16,185,129,0.08); }
+        .ai-send {
+            width: 40px; height: 40px; border-radius: 50%;
+            background:#10B981; color:white;
+            border:none; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; transition:0.2s; flex-shrink:0;
+        }
+        .ai-send:hover { background:#059669; transform:scale(1.05); }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .ai-fab  { right: 16px; bottom: 80px; }
+            .ai-popup { right: 0; left: 0; bottom: 0; width: 100%; height: 90dvh; border-radius: 24px 24px 0 0; transform: translateY(100%); }
+            .ai-popup.open { transform: translateY(0); }
+            .ai-foot { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+        }
+    </style>
 </head>
 <body>
     <div class="app-envelope">
@@ -421,5 +565,101 @@ if (empty($cleanCover)) $cleanCover = 'images/default_cover.jpg'; // Adjust fall
 
         </main>
     </div>
+    <!-- AMINE AI ASSISTANT (Shop Profile) -->
+    <div class="ai-fab" id="aiShopFab" onclick="toggleShopAI()" style="position:fixed;">
+        <img src="amine.jpg" alt="Amine"
+             onerror="this.src='https://ui-avatars.com/api/?name=Amine&background=E6FFFA&color=10B981&bold=true'">
+        <span class="ai-fab-dot"></span>
+    </div>
+    <div class="ai-popup" id="aiShopPopup">
+        <div class="ai-head">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div style="position:relative; width:40px; height:40px;">
+                    <img src="amine.jpg" alt="Amine" style="width:100%; height:100%; border-radius:12px; object-fit:cover; box-shadow:0 4px 10px rgba(0,0,0,0.1);" onerror="this.src='https://ui-avatars.com/api/?name=Amine&background=E6FFFA&color=10B981&bold=true'">
+                    <div title="Online 24/24" style="position:absolute; bottom:-2px; right:-2px; width:14px; height:14px; background:#10B981; border:2px solid #fff; border-radius:50%; box-shadow:0 2px 4px rgba(16,185,129,0.4);"></div>
+                </div>
+                <div class="ai-head-titles">
+                    <span>Amine AI Assistant</span>
+                    <small style="display:flex; align-items:center; gap:4px;">
+                        <span style="color:#10B981; font-size:8px;">●</span> Online 24/24
+                    </small>
+                </div>
+            </div>
+            <i class="fas fa-times ai-close" onclick="toggleShopAI()"></i>
+        </div>
+        <div class="ai-body" id="aiShopBody">
+            <div class="ai-msg bot">
+                <div class="ai-bubble">Hello! I am Amine, your AI assistant for QOON Seller. You can ask me about this shop's performance, inventory, or billing. How can I help?</div>
+            </div>
+        </div>
+        <div class="ai-typing" id="aiShopTyping">Analyzing shop data...</div>
+        <div class="ai-foot">
+            <input type="text" id="aiShopInput" class="ai-input" placeholder="Ask Amine..." onkeypress="if(event.key === 'Enter') sendShopAIMessage()">
+            <button class="ai-send" onclick="sendShopAIMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let shopChatHistory = [];
+        
+        function toggleShopAI() {
+            document.getElementById('aiShopPopup').classList.toggle('open');
+            document.getElementById('aiShopInput').focus();
+        }
+
+        async function sendShopAIMessage() {
+            const input = document.getElementById('aiShopInput');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            addShopAIMsg('user', msg);
+            input.value = '';
+            
+            const typing = document.getElementById('aiShopTyping');
+            typing.style.display = 'block';
+            scrollShopAIBottom();
+
+            try {
+                const res = await fetch('ai-user-agent-api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, history: shopChatHistory, page_data: { shop_id: '<?= $id ?>', type: 'shop_profile' } })
+                });
+                const textOutput = await res.text();
+                typing.style.display = 'none';
+                
+                try {
+                    const data = JSON.parse(textOutput);
+                    if(data.reply) {
+                        addShopAIMsg('bot', data.reply);
+                        shopChatHistory.push({ role: 'user', content: msg });
+                        shopChatHistory.push({ role: 'ai', content: data.reply });
+                    } else {
+                        addShopAIMsg('bot', 'AI connection issue.');
+                    }
+                } catch (e) {
+                    addShopAIMsg('bot', 'Error processing AI response.');
+                }
+            } catch(e) {
+                typing.style.display = 'none';
+                addShopAIMsg('bot', 'Connection error.');
+            }
+        }
+
+        function addShopAIMsg(sender, text) {
+            const body = document.getElementById('aiShopBody');
+            const div = document.createElement('div');
+            div.className = `ai-msg ${sender}`;
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            div.innerHTML = `<div class="ai-bubble">${formattedText}</div>`;
+            body.appendChild(div);
+            scrollShopAIBottom();
+        }
+
+        function scrollShopAIBottom() {
+            const body = document.getElementById('aiShopBody');
+            body.scrollTop = body.scrollHeight;
+        }
+    </script>
 </body>
 </html>

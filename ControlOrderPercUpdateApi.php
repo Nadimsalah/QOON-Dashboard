@@ -1,18 +1,14 @@
 <?php
  require "conn.php";
 
-$Premium         = $_POST["Premium"];
-$PremiumPlus     = $_POST["PremiumPlus"];
-$DriverCommesion = $_POST["DriverCommesion"];
-$MoneyStopNumber = $_POST["MoneyStopNumber"];
-$subscription = $_POST["subscription"];
-$SendMoneyPerc   = $_POST["SendMoneyPerc"];
-$getMoneyPerc    = $_POST["getMoneyPerc"];
-$disUser         = $_POST["disUser"];
-
-
-
-
+$Premium         = isset($_POST["Premium"]) ? floatval($_POST["Premium"]) : 0;
+$PremiumPlus     = isset($_POST["PremiumPlus"]) ? floatval($_POST["PremiumPlus"]) : 0;
+$DriverCommesion = isset($_POST["DriverCommesion"]) ? floatval($_POST["DriverCommesion"]) : 0;
+$MoneyStopNumber = isset($_POST["MoneyStopNumber"]) ? floatval($_POST["MoneyStopNumber"]) : 0;
+$subscription    = isset($_POST["subscription"]) ? floatval($_POST["subscription"]) : 0;
+$SendMoneyPerc   = isset($_POST["SendMoneyPerc"]) ? floatval($_POST["SendMoneyPerc"]) : 0;
+$getMoneyPerc    = isset($_POST["getMoneyPerc"]) ? floatval($_POST["getMoneyPerc"]) : 0;
+$disUser         = isset($_POST["disUser"]) ? floatval($_POST["disUser"]) : 0;
 
   $sql="Update Bakat set Price = '$Premium' WHERE BakatID=2";
    if(mysqli_query($con,$sql))
@@ -26,7 +22,7 @@ $disUser         = $_POST["disUser"];
 	   $sql="Update MoneyStop set DriverCommesion = '$DriverCommesion',MoneyStopNumber='$MoneyStopNumber',subscription='$subscription'";
 		   if(mysqli_query($con,$sql))
 		   {}
-	   $sql="Update OrdersJiblerpercentage set SendMoneyPerc = '$SendMoneyPerc '";
+	   $sql="Update OrdersJiblerpercentage set SendMoneyPerc = '$SendMoneyPerc'";
 		   if(mysqli_query($con,$sql))
 		   {}
 	   $sql="Update OrdersJiblerpercentage set getMoneyPerc = '$getMoneyPerc'";

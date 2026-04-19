@@ -397,7 +397,9 @@ $adminInitial = strtoupper(substr($AdminName, 0, 1));
 
     /* Mobile: hide desktop sidebar rail */
     @media (max-width: 991px) {
-        .sb-container { display: none !important; }
+        .sb-container {
+            display: none !important;
+        }
     }
 </style>
 
@@ -420,29 +422,36 @@ $adminInitial = strtoupper(substr($AdminName, 0, 1));
 
         <div class="sb-section-label">Commerce</div>
         <a href="user.php" class="sb-item <?= $currentPage == 'user.php' ? 'active' : '' ?>">
-            <i class="fas fa-user-group"></i><span>Users</span>
+            <i class="fas fa-user-group"></i><span>QOON Users</span>
         </a>
         <a href="driver.php" class="sb-item <?= $currentPage == 'driver.php' ? 'active' : '' ?>">
-            <i class="fas fa-motorcycle"></i><span>Drivers</span>
+            <i class="fas fa-motorcycle"></i><span>QOON Express</span>
         </a>
         <a href="shop.php"
             class="sb-item <?= ($currentPage == 'shop.php' || $currentPage == 'shop-profile.php') ? 'active' : '' ?>">
-            <i class="fas fa-store"></i><span>Shops</span>
+            <i class="fas fa-store"></i><span>QOON Seller</span>
+        </a>
+        <a href="shopB2B.php" class="sb-item <?= ($currentPage == 'shopB2B.php') ? 'active' : '' ?>">
+            <i class="fas fa-industry"></i><span>QOON Pro</span>
         </a>
         <a href="orders.php" class="sb-item <?= $currentPage == 'orders.php' ? 'active' : '' ?>">
             <i class="fas fa-bag-shopping"></i><span>Orders</span>
         </a>
-        <a href="notifications.php" class="sb-item <?= $currentPage == 'notifications.php' ? 'active' : '' ?>" style="position:relative;">
+        <a href="notifications.php" class="sb-item <?= $currentPage == 'notifications.php' ? 'active' : '' ?>"
+            style="position:relative;">
             <i class="fas fa-bell"></i><span>Notifications</span>
             <span class="notif-badge" id="notifBadgeSidebar" style="position:absolute;top:8px;left:26px;"></span>
         </a>
 
         <div class="sb-section-label">Finance</div>
         <a href="wallet.php" class="sb-item <?= $currentPage == 'wallet.php' ? 'active' : '' ?>">
-            <i class="fas fa-wallet"></i><span>Wallet</span>
+            <i class="fas fa-wallet"></i><span>Financial Core</span>
         </a>
         <a href="apps.php" class="sb-item <?= $currentPage == 'apps.php' ? 'active' : '' ?>">
             <i class="fas fa-cloud-bolt"></i><span>Integrations</span>
+        </a>
+        <a href="content.php" class="sb-item <?= $currentPage == 'content.php' ? 'active' : '' ?>">
+            <i class="fas fa-photo-video"></i><span>Content</span>
         </a>
 
     </nav>
@@ -506,35 +515,44 @@ $adminInitial = strtoupper(substr($AdminName, 0, 1));
 
     <!-- All nav items in a 2-column grid -->
     <div class="drawer-grid">
-        <a href="qoon-ai.php" class="drawer-item <?= $currentPage=='qoon-ai.php' ? 'active':'' ?>">
+        <a href="qoon-ai.php" class="drawer-item <?= $currentPage == 'qoon-ai.php' ? 'active' : '' ?>">
             <i class="fas fa-wand-magic-sparkles"></i>QOON AI
         </a>
-        <a href="index.php" class="drawer-item <?= $currentPage=='index.php' ? 'active':'' ?>">
+        <a href="index.php" class="drawer-item <?= $currentPage == 'index.php' ? 'active' : '' ?>">
             <i class="fas fa-chart-pie"></i>Analytics
         </a>
-        <a href="user.php" class="drawer-item <?= $currentPage=='user.php' ? 'active':'' ?>">
-            <i class="fas fa-user-group"></i>Users
+        <a href="user.php" class="drawer-item <?= $currentPage == 'user.php' ? 'active' : '' ?>">
+            <i class="fas fa-user-group"></i>QOON Users
         </a>
-        <a href="driver.php" class="drawer-item <?= $currentPage=='driver.php' ? 'active':'' ?>">
-            <i class="fas fa-motorcycle"></i>Drivers
+        <a href="driver.php" class="drawer-item <?= $currentPage == 'driver.php' ? 'active' : '' ?>">
+            <i class="fas fa-motorcycle"></i>QOON Express
         </a>
-        <a href="shop.php" class="drawer-item <?= ($currentPage=='shop.php'||$currentPage=='shop-profile.php') ? 'active':'' ?>">
-            <i class="fas fa-store"></i>Shops
+        <a href="shop.php"
+            class="drawer-item <?= ($currentPage == 'shop.php' || $currentPage == 'shop-profile.php') ? 'active' : '' ?>">
+            <i class="fas fa-store"></i>QOON Seller
         </a>
-        <a href="orders.php" class="drawer-item <?= $currentPage=='orders.php' ? 'active':'' ?>">
+        <a href="shopB2B.php" class="drawer-item <?= ($currentPage == 'shopB2B.php') ? 'active' : '' ?>">
+            <i class="fas fa-industry"></i>QOON Pro
+        </a>
+        <a href="orders.php" class="drawer-item <?= $currentPage == 'orders.php' ? 'active' : '' ?>">
             <i class="fas fa-bag-shopping"></i>Orders
         </a>
-        <a href="notifications.php" class="drawer-item <?= $currentPage=='notifications.php' ? 'active':'' ?>" style="position:relative;">
+        <a href="notifications.php" class="drawer-item <?= $currentPage == 'notifications.php' ? 'active' : '' ?>"
+            style="position:relative;">
             <i class="fas fa-bell"></i>Notifications
             <span class="notif-badge" id="notifBadgeDrawer" style="position:absolute;top:8px;right:8px;"></span>
         </a>
-        <a href="wallet.php" class="drawer-item <?= $currentPage=='wallet.php' ? 'active':'' ?>">
-            <i class="fas fa-wallet"></i>Wallet
+        <a href="wallet.php" class="drawer-item <?= $currentPage == 'wallet.php' ? 'active' : '' ?>">
+            <i class="fas fa-wallet"></i>Financial Core
         </a>
-        <a href="apps.php" class="drawer-item <?= $currentPage=='apps.php' ? 'active':'' ?>">
+        <a href="apps.php" class="drawer-item <?= $currentPage == 'apps.php' ? 'active' : '' ?>">
             <i class="fas fa-cloud-bolt"></i>Integrations
         </a>
-        <a href="settings-profile.php" class="drawer-item <?= strpos($currentPage,'settings-')!==false||$currentPage=='bakat.php' ? 'active':'' ?>">
+        <a href="content.php" class="drawer-item <?= $currentPage == 'content.php' ? 'active' : '' ?>">
+            <i class="fas fa-photo-video"></i>Content
+        </a>
+        <a href="settings-profile.php"
+            class="drawer-item <?= strpos($currentPage, 'settings-') !== false || $currentPage == 'bakat.php' ? 'active' : '' ?>">
             <i class="fas fa-gear"></i>Settings
         </a>
     </div>
@@ -552,7 +570,7 @@ $adminInitial = strtoupper(substr($AdminName, 0, 1));
 
 <script>
     function updateBadges(count) {
-        ['notifBadgeDesktop','notifBadgeMob','notifBadgeSidebar','notifBadgeDrawer'].forEach(id => {
+        ['notifBadgeDesktop', 'notifBadgeMob', 'notifBadgeSidebar', 'notifBadgeDrawer'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.textContent = count > 0 ? count : '';
         });

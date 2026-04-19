@@ -1,0 +1,6 @@
+206: .reel-card {
+216: .reel-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+218: .reel-card video {
+225: .reel-card:hover video { opacity: 0.85; }
+248: .reel-card:hover .reel-play { opacity: 1; }
+903: const reelCards  = document.querySelectorAll('#view-reels .reel-card');

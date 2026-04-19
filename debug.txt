@@ -1,0 +1,14 @@
+206: .reel-card {
+216: .reel-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.35); }
+218: .reel-card video {
+225: .reel-card:hover video { opacity: 0.85; }
+248: .reel-card:hover .reel-play { opacity: 1; }
+725: <div class="feed-container" id="view-posts">
+826: <div class="reels-container" id="view-reels">
+902: const postCards  = document.querySelectorAll('#view-posts .post-card');
+903: const reelCards  = document.querySelectorAll('#view-reels .reel-card');
+910: const postsEl = document.getElementById('view-posts');
+911: const reelsEl = document.getElementById('view-reels');
+919: document.querySelectorAll('#view-reels video').forEach(v => { v.pause(); v.currentTime = 0; });
+920: document.querySelectorAll('#view-reels .reel-play').forEach(p => p.innerHTML = '<i class="fas fa-play"></i>');
+928: document.querySelectorAll('#view-reels .reel-play').forEach(p => {

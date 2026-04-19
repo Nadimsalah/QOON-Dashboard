@@ -143,8 +143,8 @@ if (isset($tokenResponse['access_token'])) {
         );
 
 		$headers = array(         
-			'Authorization:Bearer '.$accessTokenw,
-			'Content-Type:application/json'
+			'Authorization: Bearer '.$accessTokenw,
+			'Content-Type: application/json'
 			);
 
 	   $ch = curl_init();

@@ -177,8 +177,8 @@ function newNotfi($tokens,$TitleW,$MesBodyW,$accessTokenw,$Pid)
         );
 
 		$headers = array(         
-			'Authorization:Bearer '.$accessTokenw,
-			'Content-Type:application/json'
+			'Authorization: Bearer '.$accessTokenw,
+			'Content-Type: application/json'
 			);
 
 	   $ch = curl_init();

@@ -220,6 +220,9 @@ $AdminName = $_COOKIE["AdminName"] ?? '';
                                 <i class="fas fa-box-open"></i> App Packages
                             </a>
                         <?php endif; ?>
+                        <a href="settings-ai-agents.php" class="nav-link">
+                            <i class="fas fa-robot"></i> AI Agents
+                        </a>
                     </div>
                 </div>
 
@@ -262,6 +265,8 @@ $AdminName = $_COOKIE["AdminName"] ?? '';
                             </div>
                         </form>
                     </div>
+
+
 
                 </div>
             </div>

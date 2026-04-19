@@ -17,10 +17,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 require_once 'conn.php';   // Uses the existing conn.php in the same folder
 
 // ── Inputs ────────────────────────────────────────────────────────────────
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-$limit   = min((int)($_GET['limit']  ?? 10), 50);
-$offset  = max((int)($_GET['offset'] ?? 0),  0);
+$user_id  = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
+$userLat  = isset($_GET['userLocationLant']) ? $_GET['userLocationLant'] : (isset($_GET['userLat']) ? $_GET['userLat'] : '0');
+$userLong = isset($_GET['userLocationLong']) ? $_GET['userLocationLong'] : (isset($_GET['userLong']) ? $_GET['userLong'] : '0');
+$limit    = min((int)($_GET['limit']  ?? 10), 50);
+$offset   = max((int)($_GET['offset'] ?? 0),  0);
 if ($limit < 1) $limit = 10;
+
+function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+    if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return "Null";
+    $theta = (float)$lon1 - (float)$lon2;
+    $dist = sin(deg2rad((float)$lat1)) * sin(deg2rad((float)$lat2)) +  cos(deg2rad((float)$lat1)) * cos(deg2rad((float)$lat2)) * cos(deg2rad($theta));
+    if ($dist > 1) $dist = 1; else if ($dist < -1) $dist = -1;
+    $dist = acos($dist);
+    $dist = rad2deg($dist);
+    $miles = $dist * 60 * 1.1515;
+    $km = $miles * 1.609344;
+    return strval(round($km, 2));
+}
 
 // ── URL normalizer ───────────────────────────────────────────────────────
 const LEGACY_DOMAINS_FEED = [
@@ -72,12 +86,13 @@ $stmt = $con->prepare("
         P.PostId, P.ShopID, P.PostText,
         P.PostPhoto, P.PostPhoto2, P.PostPhoto3, P.Video,
         P.PostLikes, P.Postcomments, P.CreatedAtPosts,
-        S.ShopName, S.ShopLogo, S.CategoryID, S.CityID,
+        S.ShopName, S.ShopLogo, S.CategoryID, S.CityID, S.ShopLat, S.ShopLongt, S.Type, S.priority, S.InHome, S.HasStory, S.ShopOpen,
         CASE WHEN B.BoostsByShopID IS NOT NULL THEN 1 ELSE 0 END AS isBoosted
     FROM Posts P
     JOIN Shops S ON P.ShopID = S.ShopID
     LEFT JOIN BoostsByShop B ON B.ShopID = P.ShopID AND B.BoostStatus = 'Active'
     WHERE P.PostStatus = 'ACTIVE'
+    GROUP BY P.PostId
     ORDER BY isBoosted DESC, P.PostId DESC
     LIMIT ? OFFSET ?
 ");
@@ -95,7 +110,8 @@ $result = $stmt->get_result();
 $totalRow = $con->query("SELECT COUNT(*) as c FROM Posts WHERE PostStatus = 'ACTIVE'")->fetch_assoc();
 $total    = (int)($totalRow['c'] ?? 0);
 
-$items = [];
+$itemsCount = 0;
+$shops = [];
 while ($row = $result->fetch_assoc()) {
     $media = [];
     foreach (['PostPhoto','PostPhoto2','PostPhoto3'] as $col) {
@@ -105,31 +121,69 @@ while ($row = $result->fetch_assoc()) {
     $vUrl = normalizeMediaUrl($row['Video']);
     if ($vUrl) $media[] = ['type' => 'video', 'url' => $vUrl];
 
-    $items[] = [
-        'id'        => (int)$row['PostId'],
-        'type'      => 'post',
-        'isBoosted' => (bool)$row['isBoosted'],
-        'shop'      => [
-            'id'        => (int)$row['ShopID'],
-            'name'      => $row['ShopName'],
-            'logo'      => normalizeMediaUrl($row['ShopLogo']),
-            'categoryId'=> (int)$row['CategoryID'],
-            'cityId'    => (int)$row['CityID'],
-        ],
-        'text'      => $row['PostText'],
-        'media'     => $media,
-        'likes'     => (int)$row['PostLikes'],
-        'comments'  => (int)$row['Postcomments'],
-        'createdAt' => $row['CreatedAtPosts'],
+    $distance = calculateDistance($userLat, $userLong, $row['ShopLat'] ?? 0, $row['ShopLongt'] ?? 0);
+    
+    // Distance filtering: Skip if further than 50km
+    if ($userLat != '0' && $userLong != '0' && $distance !== "Null" && (float)$distance > 50) {
+        continue;
+    }
+
+    $shopId = (string)($row['ShopID'] ?? '');
+    if (!isset($shops[$shopId])) {
+        $shops[$shopId] = [
+            'ShopID'     => $shopId,
+            'ShopName'   => (string)($row['ShopName'] ?? ''),
+            'ShopLat'    => (string)($row['ShopLat'] ?? ''),
+            'ShopLongt'  => (string)($row['ShopLongt'] ?? ''),
+            'ShopOpen'   => (string)($row['ShopOpen'] ?? 'open'),
+            'ShopLogo'   => normalizeMediaUrl($row['ShopLogo'] ?? null) ?? '',
+            'CategoryID' => (string)($row['CategoryID'] ?? ''),
+            'Type'       => (string)($row['Type'] ?? ''),
+            'priority'   => (string)($row['priority'] ?? ''),
+            'InHome'     => (string)($row['InHome'] ?? ''),
+            'HasStory'   => (strtoupper((string)($row['HasStory'] ?? '')) === 'YES' || $row['HasStory'] == '1'),
+            'HasFeed'    => true,
+            'LastUpdated'=> gmdate('Y-m-d\TH:i:s\Z'),
+            'distance'   => $distance === "Null" ? 0 : (float)$distance,
+            'CategoryStory' => [] // Renamed from "0"
+        ];
+    }
+    
+    // Nested Post (Feed)
+    $shops[$shopId]['CategoryStory'][] = [
+        'StoryID'    => (string)$row['PostId'], // Renamed from StotyID
+        'StoryPhoto' => empty($media) ? null : $media[0]['url'],
+        'ShopID'     => $shopId,
+        'StoryType'  => 'post', // Renamed from StotyType
+        'ProductId'  => (string)$row['PostId'],
+        // Extra fields
+        'PostText'   => $row['PostText'],
+        'PostLikes'  => (int)($row['PostLikes'] ?? 0),
+        'Postcomments'=> (int)($row['Postcomments'] ?? 0),
+        'CreatedAt'   => date('Y-m-d\TH:i:s\Z', strtotime($row['CreatedAtPosts'])),
+        'AllMedia'    => $media
     ];
+    
+    $itemsCount++;
 }
 
+// Convert associative array back to sequential array
+$outputArray = array_values($shops);
+
 echo json_encode([
-    'success' => true,
-    'total'   => $total,
-    'limit'   => $limit,
-    'offset'  => $offset,
-    'hasMore' => ($offset + $limit) < $total,
-    'userId'  => $user_id,
-    'items'   => $items,
+    'status_code' => 200,
+    'success'     => true,
+    'message'     => 'Success',
+    'PageObject'  => [
+        'currentpage' => (int)($offset / $limit) + 1,
+        'hasNextPage' => ($offset + $limit) < $total
+    ],
+    'data'        => $outputArray,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+// Non-blocking trigger to wake up the AI Auto-Moderator seamlessly on the server
+$ch = curl_init("http://127.0.0.1/dashx/dash/tick_ai_worker.php");
+curl_setopt($ch, CURLOPT_TIMEOUT_MS, 50);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+@curl_exec($ch);
+curl_close($ch);

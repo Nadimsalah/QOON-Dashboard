@@ -29,7 +29,7 @@ session_start();
 
 $xx = $_SESSION["Emailjibler"] ?? $_COOKIE["Emailjibler"] ?? '';
 
-if ($xx == '') {
+if ($xx == '' && php_sapi_name() !== 'cli') {
   //  header("location: login.html"); 
 
 

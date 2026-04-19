@@ -303,31 +303,29 @@ if($resCats) {
     <script>
         function saveForCat() {
             document.getElementById('globalLoader').style.display = 'flex';
-            let promises = [];
+            let updates = [];
 
             categoryIds.forEach(function (id) {
                 var inputElement = document.getElementById(id);
                 if (inputElement) {
-                    var inputValue = inputElement.value;
-                    var formData = new FormData();
-                    formData.append("CategoryId", id);
-                    formData.append("PercForOrder", inputValue);
-                    
-                    let p = $.ajax({
-                        url: "UpdateCatsPercValuesApi.php",
-                        type: "POST",
-                        data: formData,
-                        processData: false,
-                        contentType: false,
-                        cache: false
+                    updates.push({
+                        CategoryId: id,
+                        PercForOrder: inputElement.value
                     });
-                    promises.push(p);
                 }
             });
 
-            // Wait for all AJAX modifications to succeed before hard-refresh
-            $.when.apply($, promises).then(function() {
-                location.reload();
+            $.ajax({
+                url: "UpdateCatsPercValuesApi.php",
+                type: "POST",
+                data: { updates: updates },
+                success: function() {
+                    location.reload();
+                },
+                error: function() {
+                    alert('Error saving data. Please try again.');
+                    location.reload();
+                }
             });
         }
     </script>

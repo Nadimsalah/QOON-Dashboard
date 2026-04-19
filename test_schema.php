@@ -1,13 +1,5 @@
 <?php
-// Bypass auth by not including conn.php directly if it redirects, or just bypass the check
-$dbhost = "145.223.33.118";
-$dbuser = "qoon_Qoon";
-$dbpass = ";)xo6b(RE}K%";
-$dbname = "qoon_Qoon";
-$con = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname);
-
-$res4 = mysqli_query($con, "SHOW COLUMNS FROM Users");
-while($row = mysqli_fetch_array($res4)){
-    echo $row[0].", ";
-}
+$c = new mysqli('145.223.33.118', 'qoon_Qoon', ';)xo6b(RE}K%', 'qoon_Qoon');
+$r = $c->query("DESCRIBE Posts");
+while($row = $r->fetch_assoc()) echo $row['Field'] . " | ";
 ?>

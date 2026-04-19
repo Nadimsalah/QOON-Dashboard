@@ -21,10 +21,24 @@ ini_set('log_errors', 1);       // log to server error log instead
 require_once 'conn.php';   // Uses the existing conn.php in the same folder
 
 // ── Inputs ────────────────────────────────────────────────────────────────
-$user_id = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
-$limit   = min((int)($_GET['limit']  ?? 10), 50);
-$offset  = max((int)($_GET['offset'] ?? 0),  0);
+$user_id  = isset($_GET['user_id']) ? (int)$_GET['user_id'] : 0;
+$userLat  = isset($_GET['userLocationLant']) ? $_GET['userLocationLant'] : (isset($_GET['userLat']) ? $_GET['userLat'] : '0');
+$userLong = isset($_GET['userLocationLong']) ? $_GET['userLocationLong'] : (isset($_GET['userLong']) ? $_GET['userLong'] : '0');
+$limit    = min((int)($_GET['limit']  ?? 10), 50);
+$offset   = max((int)($_GET['offset'] ?? 0),  0);
 if ($limit < 1) $limit = 10;
+
+function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+    if (!$lat1 || !$lon1 || !$lat2 || !$lon2) return "Null";
+    $theta = (float)$lon1 - (float)$lon2;
+    $dist = sin(deg2rad((float)$lat1)) * sin(deg2rad((float)$lat2)) +  cos(deg2rad((float)$lat1)) * cos(deg2rad((float)$lat2)) * cos(deg2rad($theta));
+    if ($dist > 1) $dist = 1; else if ($dist < -1) $dist = -1;
+    $dist = acos($dist);
+    $dist = rad2deg($dist);
+    $miles = $dist * 60 * 1.1515;
+    $km = $miles * 1.609344;
+    return strval(round($km, 2));
+}
 
 // ── URL normalizer ───────────────────────────────────────────────────────
 // Strips any legacy domain and rebuilds with qoon.app.
@@ -112,9 +126,10 @@ function isValidVideoUrl(?string $url): bool {
 // interpolate directly, eliminating the resource-reuse problem entirely.
 
 $BATCH_SIZE = (int)$limit;  // rows to fetch per DB round-trip
-$MAX_LOOPS  = 5;            // hard safety cap
+$MAX_LOOPS  = 10;            // hard safety cap
 
-$items         = [];
+$items         = 0;
+$shops         = [];
 $currentOffset = (int)$offset;
 $loops         = 0;
 $debugLog      = [];
@@ -133,15 +148,16 @@ for ($loops = 0; $loops < $MAX_LOOPS; $loops++) {
             P.PostId, P.ShopID, P.PostText,
             P.PostPhoto, P.Video,
             P.PostLikes, P.Postcomments, P.CreatedAtPosts,
-            S.ShopName, S.ShopLogo, S.CategoryID, S.CityID,
+            S.ShopName, S.ShopLogo, S.CategoryID, S.CityID, S.ShopLat, S.ShopLongt, S.Type, S.priority, S.InHome, S.HasStory, S.ShopOpen,
             CASE WHEN B.BoostsByShopID IS NOT NULL THEN 1 ELSE 0 END AS isBoosted
         FROM Posts P
-        LEFT JOIN Shops S ON P.ShopID = S.ShopID
+        JOIN Shops S ON P.ShopID = S.ShopID
         LEFT JOIN BoostsByShop B
             ON B.ShopID = P.ShopID AND B.BoostStatus = 'Active'
         WHERE P.PostStatus = 'ACTIVE'
           AND P.Video IS NOT NULL
           AND P.Video NOT IN ('', 'NONE', '0')
+        GROUP BY P.PostId
         ORDER BY isBoosted DESC, P.PostId DESC
         LIMIT {$BATCH_SIZE} OFFSET {$currentOffset}
     ";
@@ -160,7 +176,7 @@ for ($loops = 0; $loops < $MAX_LOOPS; $loops++) {
         'loop'       => $loops,
         'offset'     => $currentOffset,
         'rowsFromDB' => $rowsFromDB,
-        'collected'  => count($items),
+        'collected'  => $items,
         'sql'        => $sql,
     ];
 
@@ -182,24 +198,56 @@ for ($loops = 0; $loops < $MAX_LOOPS; $loops++) {
             continue;
         }
 
-        $items[] = [
-            'id'        => (int)$row['PostId'],
-            'type'      => 'reel',
-            'isBoosted' => (bool)$row['isBoosted'],
-            'shop'      => [
-                'id'         => (int)($row['ShopID'] ?? 0),
-                'name'       => $row['ShopName'] ?? '',
-                'logo'       => normalizeMediaUrl($row['ShopLogo'] ?? null),
-                'categoryId' => (int)($row['CategoryID'] ?? 0),
-                'cityId'     => (int)($row['CityID'] ?? 0),
-            ],
-            'caption'   => $row['PostText'],
-            'videoUrl'  => $videoUrl,
-            'thumbnail' => $thumbnail,
-            'likes'     => (int)$row['PostLikes'],
-            'comments'  => (int)$row['Postcomments'],
-            'createdAt' => $row['CreatedAtPosts'],
+        $distance = calculateDistance($userLat, $userLong, $row['ShopLat'] ?? 0, $row['ShopLongt'] ?? 0);
+        
+        // Distance filtering: Skip if further than 50km
+        if ($userLat != '0' && $userLong != '0' && $distance !== "Null" && (float)$distance > 50) {
+            $rejectedLog[] = ['reason' => 'distance', 'val' => $distance, 'post' => $row['PostId']];
+            continue;
+        }
+
+        $shopId = (string)($row['ShopID'] ?? '');
+        if (!isset($shops[$shopId])) {
+            $shops[$shopId] = [
+                'ShopID'     => $shopId,
+                'ShopName'   => (string)($row['ShopName'] ?? ''),
+                'ShopLat'    => (string)($row['ShopLat'] ?? ''),
+                'ShopLongt'  => (string)($row['ShopLongt'] ?? ''),
+                'ShopOpen'   => (string)($row['ShopOpen'] ?? 'open'),
+                'ShopLogo'   => normalizeMediaUrl($row['ShopLogo'] ?? null) ?? '',
+                'CategoryID' => (string)($row['CategoryID'] ?? ''),
+                'Type'       => (string)($row['Type'] ?? ''),
+                'priority'   => (string)($row['priority'] ?? ''),
+                'InHome'     => (string)($row['InHome'] ?? ''),
+                'HasStory'   => (strtoupper((string)($row['HasStory'] ?? '')) === 'YES' || $row['HasStory'] == '1'),
+                'HasFeed'    => true,
+                'LastUpdated'=> gmdate('Y-m-d\TH:i:s\Z'),
+                'distance'   => $distance === "Null" ? 0 : (float)$distance,
+                'CategoryStory' => [] // Renamed from "0"
+            ];
+        }
+
+        // Nested Reels
+        $shops[$shopId]['CategoryStory'][] = [
+            'StoryID'    => (string)$row['PostId'], // Renamed from StotyID
+            'StoryPhoto' => empty($thumbnail) ? null : $thumbnail,
+            'ShopID'     => $shopId,
+            'StoryType'  => 'reel', // Renamed from StotyType
+            'ProductId'  => (string)$row['PostId'],
+            // Pass extra attributes to match older expected structures just in case
+            'PostText'   => $row['PostText'],
+            'PostLikes'  => (int)($row['PostLikes'] ?? 0),
+            'Postcomments'=> (int)($row['Postcomments'] ?? 0),
+            'CreatedAt'  => date('Y-m-d\TH:i:s\Z', strtotime($row['CreatedAtPosts'])),
+            'AllMedia'   => [
+                [
+                    'type' => 'video',
+                    'url'  => $videoUrl
+                ]
+            ]
         ];
+        
+        $items++;
     }
 
     mysqli_free_result($result);
@@ -207,15 +255,17 @@ for ($loops = 0; $loops < $MAX_LOOPS; $loops++) {
     // Append rejection details to this loop's debug entry
     $debugLog[count($debugLog) - 1]['rejected'] = $rejectedLog;
 
-
     // Offset ALWAYS advances by batch size (not by valid count)
     $currentOffset += $BATCH_SIZE;
 
     // ── STOP CONDITION 3: collected enough valid items ───────────────────
-    if (count($items) >= $limit) break;
+    if ($items >= $limit) break;
 
     // (STOP CONDITION 2 is handled by for-loop ceiling: $loops < $MAX_LOOPS)
 }
+
+// Convert associative shops array to sequential array
+$outputArray = array_values($shops);
 
 // ── Total count (approximate — pre-validation filter) ────────────────────
 $totalRow = mysqli_fetch_assoc(mysqli_query($con, "
@@ -226,18 +276,22 @@ $totalRow = mysqli_fetch_assoc(mysqli_query($con, "
 "));
 $dbTotal = (int)($totalRow['c'] ?? 0);
 
-$hasMore = ($currentOffset < $dbTotal) && (count($items) >= $limit);
+$hasMore = ($currentOffset < $dbTotal) && ($items >= $limit);
 
 echo json_encode([
-    'success'  => true,
-    'total'    => $dbTotal,
-    'returned' => count($items),
-    'loops'    => $loops + 1,   // +1 because for-loop index is 0-based
-    'limit'    => $limit,
-    'offset'   => $offset,
-    'hasMore'  => $hasMore,
-    'userId'   => $user_id,
-    'debug'    => $debugLog,    // remove once confirmed working
-    'items'    => $items,
+    'status_code' => 200,
+    'success'     => true,
+    'message'     => 'Success',
+    'PageObject'  => [
+        'currentpage' => (int)($offset / $limit) + 1,
+        'hasNextPage' => $hasMore
+    ],
+    'data'        => $outputArray,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
+// Non-blocking trigger to wake up the AI Auto-Moderator seamlessly on the server
+$ch = curl_init("http://127.0.0.1/dashx/dash/tick_ai_worker.php");
+curl_setopt($ch, CURLOPT_TIMEOUT_MS, 50);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+@curl_exec($ch);
+curl_close($ch);
